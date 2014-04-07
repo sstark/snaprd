@@ -13,6 +13,7 @@ func main() {
     config = LoadConfig()
     log.Println("config:", config)
     snapshots := FindSnapshots()
+    log.Println("lastgood:", snapshots.lastGood())
     for _, sn := range snapshots {
         log.Println(sn)
     }

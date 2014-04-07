@@ -92,6 +92,19 @@ func (s *Snapshot) transComplete() {
 
 type SnapshotList []*Snapshot
 
+// find the last snapshot to use as a basis for the next one
+func (sl SnapshotList) lastGood() *Snapshot {
+    var t int64 = 0
+    var ix int = 0
+    for i, sn := range sl {
+        if sn.startTime > t && sn.state == STATE_COMPLETE {
+            t = sn.startTime
+            ix = i
+        }
+    }
+    return sl[ix]
+}
+
 func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
     sa := strings.Split(s, "-")
     if len(sa) != 3 {
