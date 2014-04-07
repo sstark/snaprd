@@ -24,7 +24,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     return cmd
 }
 
-func CreateSnapshot(c chan string, base *Snapshot) {
+func CreateSnapshot(c chan error, base *Snapshot) {
     // first snapshot
     if base == nil {
         err := os.MkdirAll(config.dstPath, 00755)
@@ -54,7 +54,11 @@ func CreateSnapshot(c chan string, base *Snapshot) {
         }
         log.Print(str)
     }
-    var msg string = "Snapshot created"
+    err = cmd.Wait()
+    if err != nil {
+        c <- err
+        return
+    }
     newSn.transComplete()
-    c <- msg
+    c <- nil
 }
