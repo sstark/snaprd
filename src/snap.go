@@ -95,14 +95,14 @@ type SnapshotList []*Snapshot
 // find the last snapshot to use as a basis for the next one
 func (sl SnapshotList) lastGood() *Snapshot {
     var t int64 = 0
-    var ix int = 0
+    var ix int = -1
     for i, sn := range sl {
         if (sn.startTime > t) && (sn.state == STATE_COMPLETE) {
             t = sn.startTime
             ix = i
         }
     }
-    if ix == 0 {
+    if ix == -1  {
         return nil
     }
     return sl[ix]
