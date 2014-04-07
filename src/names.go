@@ -8,6 +8,7 @@ import (
     "time"
     "strconv"
     "strings"
+    "errors"
 )
 
 type SnapshotState int
@@ -78,7 +79,7 @@ func (s *Snapshot) transComplete() {
     oldName := filepath.Join(config.dstPath, s.Name())
     etime := unixTimestamp()
     if etime < s.startTime {
-        log.Panic("endTime before startTime!")
+        log.Fatal("endTime before startTime!")
     }
     // make all snapshots at least 1 second long
     if etime == s.startTime {
@@ -91,24 +92,18 @@ func (s *Snapshot) transComplete() {
 
 type SnapshotList []*Snapshot
 
-func isSnapshot(f os.FileInfo) bool {
-    if !f.IsDir() {
-        return false
-    }
-    // number-number OR
-    // number-
-    return true
-}
-
-func parseSnapshotName(s string) (int64, int64, SnapshotState) {
+func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
     sa := strings.Split(s, "-")
+    if len(sa) != 3 {
+        return 0, 0, 0, errors.New("malformed snapshot name: " + s)
+    }
     stime, err := strconv.ParseInt(sa[0], 10, 64)
     if err != nil {
-        log.Panic(err)
+        return 0, 0, 0, err
     }
     etime, err := strconv.ParseInt(sa[1], 10, 64)
     if err != nil {
-        log.Panic(err)
+        return 0, 0, 0, err
     }
     var state SnapshotState = 0
     stateInfo := strings.Split(sa[2], ",")
@@ -124,22 +119,29 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState) {
             state += STATE_INDELETION
         }
     }
-    return stime, etime, state
+    // no state tags found
+    if state == 0 {
+        return stime, etime, state, errors.New("could not parse state: " + s)
+    }
+    return stime, etime, state, nil
 }
 
 func FindSnapshots() SnapshotList {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.dstPath, ""))
     if err != nil {
-        log.Panic(err)
+        log.Fatal(err)
     }
     for _, f := range files {
-        if isSnapshot(f) {
-            stime, etime, state := parseSnapshotName(f.Name())
+        // normal files are allowed but ignored
+        if f.IsDir() {
+            stime, etime, state, err := parseSnapshotName(f.Name())
+            if err != nil {
+                log.Println(err)
+                continue
+            }
             sn := newSnapshot(stime, etime, state)
             snapshots = append(snapshots, sn)
-        } else {
-            log.Println(f.Name() + " is not a snapshot")
         }
     }
     return snapshots
