@@ -7,6 +7,7 @@ import (
     "path/filepath"
     "time"
     "strconv"
+    "strings"
 )
 
 type SnapshotState int
@@ -64,11 +65,11 @@ func (s *Snapshot) Name() (n string) {
     etime := strconv.FormatInt(s.endTime, 10)
     switch s.state {
     case STATE_INCOMPLETE:
-        return stime + "-incomplete"
+        return stime + "-" + "0" + "-incomplete"
     case STATE_COMPLETE:
-        return stime + "-" + etime
+        return stime + "-" + etime + "-complete"
     case STATE_COMPLETE | STATE_OBSOLETE:
-        return stime + "-" + etime + "-obsolete"
+        return stime + "-" + etime + "-complete,obsolete"
     }
     return ""
 }
@@ -84,6 +85,33 @@ func isSnapshot(f os.FileInfo) bool {
     return true
 }
 
+func parseSnapshotName(s string) (int64, int64, SnapshotState) {
+    sa := strings.Split(s, "-")
+    stime, err := strconv.ParseInt(sa[0], 10, 64)
+    if err != nil {
+        log.Panic(err)
+    }
+    etime, err := strconv.ParseInt(sa[1], 10, 64)
+    if err != nil {
+        log.Panic(err)
+    }
+    var state SnapshotState = 0
+    stateInfo := strings.Split(sa[2], ",")
+    for _, s := range stateInfo {
+        switch s {
+        case "complete":
+            state += STATE_COMPLETE
+        case "incomplete":
+            state += STATE_INCOMPLETE
+        case "obsolete":
+            state += STATE_OBSOLETE
+        case "indeletion":
+            state += STATE_INDELETION
+        }
+    }
+    return stime, etime, state
+}
+
 func FindSnapshots() SnapshotList {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.dstPath, ""))
@@ -92,7 +120,8 @@ func FindSnapshots() SnapshotList {
     }
     for _, f := range files {
         if isSnapshot(f) {
-            s := newSnapshot(12345, 23456, STATE_COMPLETE | STATE_OBSOLETE | STATE_INDELETION)
+            stime, etime, state := parseSnapshotName(f.Name())
+            s := newSnapshot(stime, etime, state)
             snapshots = append(snapshots, s)
         } else {
             log.Println(f.Name() + " is not a snapshot")
