@@ -5,8 +5,8 @@ import (
     "log"
     "bufio"
     "io"
-    //"strings"
     "path/filepath"
+    "os"
 )
 
 func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
@@ -25,6 +25,13 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
 }
 
 func CreateSnapshot(c chan string, base *Snapshot) {
+    // first snapshot
+    if base == nil {
+        err := os.MkdirAll(config.dstPath, 00755)
+        if err != nil {
+            log.Fatal(err)
+        }
+    }
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
     stdout, err := cmd.StdoutPipe()

@@ -12,7 +12,10 @@ func main() {
     var c chan string = make(chan string)
     config = LoadConfig()
     log.Println("config:", config)
-    snapshots := FindSnapshots()
+    snapshots, err := FindSnapshots()
+    if err != nil {
+        log.Println(err)
+    }
     for _, sn := range snapshots {
         log.Println(sn)
     }

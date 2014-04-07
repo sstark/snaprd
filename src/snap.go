@@ -142,11 +142,11 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
     return stime, etime, state, nil
 }
 
-func FindSnapshots() SnapshotList {
+func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.dstPath, ""))
     if err != nil {
-        log.Fatal(err)
+        return nil, errors.New("destination path " + config.dstPath + " does not exist yet")
     }
     for _, f := range files {
         // normal files are allowed but ignored
@@ -160,5 +160,5 @@ func FindSnapshots() SnapshotList {
             snapshots = append(snapshots, sn)
         }
     }
-    return snapshots
+    return snapshots, nil
 }
