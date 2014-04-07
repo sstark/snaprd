@@ -105,8 +105,8 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState) {
     }
     var state SnapshotState = 0
     stateInfo := strings.Split(sa[2], ",")
-    for _, s := range stateInfo {
-        switch s {
+    for _, si := range stateInfo {
+        switch si {
         case "complete":
             state += STATE_COMPLETE
         case "incomplete":
@@ -129,8 +129,8 @@ func FindSnapshots() SnapshotList {
     for _, f := range files {
         if isSnapshot(f) {
             stime, etime, state := parseSnapshotName(f.Name())
-            s := newSnapshot(stime, etime, state)
-            snapshots = append(snapshots, s)
+            sn := newSnapshot(stime, etime, state)
+            snapshots = append(snapshots, sn)
         } else {
             log.Println(f.Name() + " is not a snapshot")
         }

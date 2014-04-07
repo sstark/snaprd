@@ -11,9 +11,9 @@ func main() {
     var c chan string = make(chan string)
     config = LoadConfig()
     log.Println("config:", config)
-    sl := FindSnapshots()
-    for _, s := range sl {
-        log.Println(s)
+    snapshots := FindSnapshots()
+    for _, sn := range snapshots {
+        log.Println(sn)
     }
     go CreateSnapshot(c)
     for {
