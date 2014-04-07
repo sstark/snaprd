@@ -74,6 +74,14 @@ func (s *Snapshot) Name() (n string) {
     return ""
 }
 
+func (s *Snapshot) transComplete() {
+    oldName := filepath.Join(config.dstPath, s.Name())
+    // the +10 is only for testing!
+    s.endTime = unixTimestamp()+10
+    s.state = STATE_COMPLETE
+    os.Rename(oldName, filepath.Join(config.dstPath, s.Name()))
+}
+
 type SnapshotList []*Snapshot
 
 func isSnapshot(f os.FileInfo) bool {

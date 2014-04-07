@@ -45,5 +45,6 @@ func CreateSnapshot(c chan string) {
         log.Print(str)
     }
     var msg string = "Snapshot created"
+    sn.transComplete()
     c <- msg
 }
