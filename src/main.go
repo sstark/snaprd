@@ -8,6 +8,7 @@ import (
 var config *Config
 
 func main() {
+    log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
     var c chan string = make(chan string)
     config = LoadConfig()
     log.Println("config:", config)
