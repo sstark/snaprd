@@ -27,6 +27,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
 func CreateSnapshot(c chan error, base *Snapshot) {
     // first snapshot
     if base == nil {
+        log.Println("creating destination directory for initial snapshot:", config.dstPath)
         err := os.MkdirAll(config.dstPath, 00755)
         if err != nil {
             log.Fatal(err)
@@ -36,12 +37,14 @@ func CreateSnapshot(c chan error, base *Snapshot) {
     cmd := createRsyncCommand(newSn, base)
     stdout, err := cmd.StdoutPipe()
     if err != nil {
-        log.Fatal(err)
+        c <- err
+        return
     }
     rd := bufio.NewReader(stdout)
     err = cmd.Start()
     if err != nil {
-        log.Fatal(err)
+        c <- err
+        return
     }
     for {
         str, err := rd.ReadString('\n')
