@@ -63,5 +63,6 @@ func CreateSnapshot(c chan error, base *Snapshot) {
         return
     }
     newSn.transComplete()
+    log.Println("finished:", newSn.Name())
     c <- nil
 }
