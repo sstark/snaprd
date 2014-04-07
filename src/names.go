@@ -39,33 +39,41 @@ type Snapshot struct {
     startTime int64
     endTime int64
     state SnapshotState
-    dirname string
 }
 
-func newSnapshot(startTime int64, endTime int64, state SnapshotState, dirname string) *Snapshot {
-    return &Snapshot{startTime, endTime, state, dirname}
+func unixTimestamp() int64 {
+    return time.Now().Unix()
+}
+
+func newSnapshot(startTime int64, endTime int64, state SnapshotState) *Snapshot {
+    return &Snapshot{startTime, endTime, state}
+}
+
+func newIncompleteSnapshot() *Snapshot {
+    return &Snapshot{unixTimestamp(), 0, STATE_INCOMPLETE}
 }
 
 func (s *Snapshot) String() string {
     stime := strconv.FormatInt(s.startTime, 10)
     etime := strconv.FormatInt(s.endTime, 10)
-    return stime + "-" + etime + " S" + s.state.String() + "(" + s.dirname + ")"
+    return stime + "-" + etime + " S" + s.state.String()
+}
+
+func (s *Snapshot) Name() (n string) {
+    stime := strconv.FormatInt(s.startTime, 10)
+    etime := strconv.FormatInt(s.endTime, 10)
+    switch s.state {
+    case STATE_INCOMPLETE:
+        return stime + "-incomplete"
+    case STATE_COMPLETE:
+        return stime + "-" + etime
+    case STATE_COMPLETE | STATE_OBSOLETE:
+        return stime + "-" + etime + "-obsolete"
+    }
+    return ""
 }
 
 type SnapshotList []*Snapshot
-
-func unixTimestamp() string {
-    return strconv.FormatInt(time.Now().Unix(), 10)
-}
-
-func newSnapshotName() string {
-    ts := unixTimestamp()
-    return ts
-}
-
-func finishedSnapshotName(incompleteName string) string {
-    return incompleteName + "-" + unixTimestamp()
-}
 
 func isSnapshot(f os.FileInfo) bool {
     if !f.IsDir() {
@@ -84,7 +92,7 @@ func FindSnapshots() SnapshotList {
     }
     for _, f := range files {
         if isSnapshot(f) {
-            s := newSnapshot(12345, 23456, STATE_COMPLETE | STATE_OBSOLETE | STATE_INDELETION, f.Name())
+            s := newSnapshot(12345, 23456, STATE_COMPLETE | STATE_OBSOLETE | STATE_INDELETION)
             snapshots = append(snapshots, s)
         } else {
             log.Println(f.Name() + " is not a snapshot")

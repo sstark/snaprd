@@ -6,14 +6,15 @@ import (
     "bufio"
     "io"
     //"strings"
+    "path/filepath"
 )
 
-func createRsyncCommand() *exec.Cmd {
+func createRsyncCommand(sn *Snapshot) *exec.Cmd {
     cmd := exec.Command(config.rsyncPath)
     args := make([]string, 0, 256)
     args = append(args, config.rsyncPath)
     args = append(args, config.rsyncOpts...)
-    args = append(args, config.srcPath, config.dstPath)
+    args = append(args, config.srcPath, filepath.Join(config.dstPath, sn.Name()))
     cmd.Args = args
     cmd.Dir = config.wrkPath
     log.Println("run:", args)
@@ -21,7 +22,8 @@ func createRsyncCommand() *exec.Cmd {
 }
 
 func CreateSnapshot(c chan string) {
-    cmd := createRsyncCommand()
+    sn := newIncompleteSnapshot()
+    cmd := createRsyncCommand(sn)
     stdout, err := cmd.StdoutPipe()
     if err != nil {
         log.Fatal(err)
