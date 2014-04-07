@@ -97,10 +97,13 @@ func (sl SnapshotList) lastGood() *Snapshot {
     var t int64 = 0
     var ix int = 0
     for i, sn := range sl {
-        if sn.startTime > t && sn.state == STATE_COMPLETE {
+        if (sn.startTime > t) && (sn.state == STATE_COMPLETE) {
             t = sn.startTime
             ix = i
         }
+    }
+    if ix == 0 {
+        return nil
     }
     return sl[ix]
 }

@@ -9,11 +9,14 @@ import (
     "path/filepath"
 )
 
-func createRsyncCommand(sn *Snapshot) *exec.Cmd {
+func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     cmd := exec.Command(config.rsyncPath)
     args := make([]string, 0, 256)
     args = append(args, config.rsyncPath)
     args = append(args, config.rsyncOpts...)
+    if base != nil {
+        args = append(args, "--link-dest=" + filepath.Join(config.dstPath, base.Name()))
+    }
     args = append(args, config.srcPath, filepath.Join(config.dstPath, sn.Name()))
     cmd.Args = args
     cmd.Dir = config.wrkPath
@@ -21,9 +24,9 @@ func createRsyncCommand(sn *Snapshot) *exec.Cmd {
     return cmd
 }
 
-func CreateSnapshot(c chan string) {
-    sn := newIncompleteSnapshot()
-    cmd := createRsyncCommand(sn)
+func CreateSnapshot(c chan string, base *Snapshot) {
+    newSn := newIncompleteSnapshot()
+    cmd := createRsyncCommand(newSn, base)
     stdout, err := cmd.StdoutPipe()
     if err != nil {
         log.Fatal(err)
@@ -45,6 +48,6 @@ func CreateSnapshot(c chan string) {
         log.Print(str)
     }
     var msg string = "Snapshot created"
-    sn.transComplete()
+    newSn.transComplete()
     c <- msg
 }
