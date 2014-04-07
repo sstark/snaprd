@@ -76,8 +76,15 @@ func (s *Snapshot) Name() (n string) {
 
 func (s *Snapshot) transComplete() {
     oldName := filepath.Join(config.dstPath, s.Name())
-    // the +10 is only for testing!
-    s.endTime = unixTimestamp()+10
+    etime := unixTimestamp()
+    if etime < s.startTime {
+        log.Panic("endTime before startTime!")
+    }
+    // make all snapshots at least 1 second long
+    if etime == s.startTime {
+        etime += 1
+    }
+    s.endTime = etime
     s.state = STATE_COMPLETE
     os.Rename(oldName, filepath.Join(config.dstPath, s.Name()))
 }
