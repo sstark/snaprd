@@ -24,7 +24,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     return cmd
 }
 
-func logPipe(cmd *exec.Cmd) error {
+func runRsyncCommand(cmd *exec.Cmd) error {
     var err error
     stdout, err := cmd.StdoutPipe()
     if err != nil {
@@ -60,6 +60,10 @@ func logPipe(cmd *exec.Cmd) error {
         }
         log.Print("<rsync stdout> ", str)
     }
+    err = cmd.Wait()
+    if err != nil {
+        return err
+    }
     return nil
 }
 
@@ -75,12 +79,7 @@ func CreateSnapshot(c chan error, base *Snapshot) {
     }
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
-    err := logPipe(cmd)
-    if err != nil {
-        c <- err
-        return
-    }
-    err = cmd.Wait()
+    err := runRsyncCommand(cmd)
     if err != nil {
         c <- err
         return
