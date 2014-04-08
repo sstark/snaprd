@@ -24,6 +24,46 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     return cmd
 }
 
+func logPipe(cmd *exec.Cmd) error {
+    var err error
+    stdout, err := cmd.StdoutPipe()
+    if err != nil {
+        return err
+    }
+    stderr, err := cmd.StderrPipe()
+    if err != nil {
+        return err
+    }
+    stdoutReader := bufio.NewReader(stdout)
+    stderrReader := bufio.NewReader(stderr)
+    err = cmd.Start()
+    if err != nil {
+        return err
+    }
+    for {
+        str, err := stderrReader.ReadString('\n')
+        if err == io.EOF {
+            break
+        }
+        if err != nil && err != io.EOF {
+            return err
+        }
+        log.Print("<rsync stderr> ", str)
+    }
+    for {
+        str, err := stdoutReader.ReadString('\n')
+        if err == io.EOF {
+            break
+        }
+        if err != nil && err != io.EOF {
+            return err
+        }
+        log.Print("<rsync stdout> ", str)
+    }
+    return nil
+}
+
+
 func CreateSnapshot(c chan error, base *Snapshot) {
     // first snapshot
     if base == nil {
@@ -35,27 +75,10 @@ func CreateSnapshot(c chan error, base *Snapshot) {
     }
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
-    stdout, err := cmd.StdoutPipe()
+    err := logPipe(cmd)
     if err != nil {
         c <- err
         return
-    }
-    rd := bufio.NewReader(stdout)
-    err = cmd.Start()
-    if err != nil {
-        c <- err
-        return
-    }
-    for {
-        str, err := rd.ReadString('\n')
-        if err == io.EOF {
-            break
-        }
-        if err != nil && err != io.EOF {
-            log.Println("Read Error: ", err)
-            return
-        }
-        log.Print(str)
     }
     err = cmd.Wait()
     if err != nil {
