@@ -11,7 +11,9 @@ func main() {
     log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
     var c chan error = make(chan error)
     config = LoadConfig()
-    log.Println("config:", config)
+    if config == nil {
+        log.Fatal("no config, don't know what to do!")
+    }
     snapshots, err := FindSnapshots()
     if err != nil {
         log.Println(err)
