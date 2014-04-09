@@ -75,6 +75,35 @@ func (s *Snapshot) Name() (n string) {
     return ""
 }
 
+// Mark the latest snapshot for easy access.
+// Do not fail if not possible since it is more important
+// to continue creating new snapshots.
+func tryLink(target string) {
+    linkName := filepath.Join(config.dstPath, "latest")
+    fi, err := os.Lstat(linkName)
+    if err != nil {
+        // link does not exist or can not be read
+        log.Println(err)
+    }
+    if fi != nil {
+        // link exists
+        if fi.Mode() & os.ModeSymlink == os.ModeSymlink {
+            // link is indeed a symlink
+            err = os.Remove(linkName)
+            if err != nil {
+                // link can not be removed
+                log.Println(err)
+            }
+        }
+    }
+    err = os.Symlink(target, linkName)
+    if err != nil {
+        log.Println(err)
+    } else {
+        log.Println("symlink latest snapshot")
+    }
+}
+
 func (s *Snapshot) transComplete() {
     oldName := filepath.Join(config.dstPath, s.Name())
     etime := unixTimestamp()
@@ -87,7 +116,12 @@ func (s *Snapshot) transComplete() {
     }
     s.endTime = etime
     s.state = STATE_COMPLETE
-    os.Rename(oldName, filepath.Join(config.dstPath, s.Name()))
+    newName := filepath.Join(config.dstPath, s.Name())
+    err := os.Rename(oldName, newName)
+    if err != nil {
+        log.Fatal(err)
+    }
+    tryLink(newName)
 }
 
 type SnapshotList []*Snapshot

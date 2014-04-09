@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-root="/tmp/snapr_test"
+root="/tmp/snaprd_test"
 
 for a in a b c d e
 do
