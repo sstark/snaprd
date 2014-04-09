@@ -18,9 +18,7 @@ func main() {
     if err != nil {
         log.Println(err)
     }
-    for _, sn := range snapshots {
-        log.Println("found:", sn)
-    }
+    log.Println("found", len(snapshots), "snapshots")
     lastGood := snapshots.lastGood()
     if lastGood != nil {
         log.Println("lastgood:", lastGood)
