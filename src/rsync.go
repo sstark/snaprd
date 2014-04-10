@@ -13,6 +13,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     cmd := exec.Command(config.rsyncPath)
     args := make([]string, 0, 256)
     args = append(args, config.rsyncPath)
+    args = append(args, "-a")
     args = append(args, config.rsyncOpts...)
     if base != nil {
         args = append(args, "--link-dest=" + filepath.Join(config.repository, base.Name()))

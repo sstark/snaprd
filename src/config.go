@@ -49,7 +49,6 @@ Examples:
 
 func LoadConfig() *Config {
     config := new(Config)
-    config.rsyncOpts = []string{"-a"}
     if len(os.Args) > 1 {
         cmd = os.Args[1]
     } else {
@@ -63,7 +62,7 @@ func LoadConfig() *Config {
                 "rsyncPath", "/usr/bin/rsync",
                 "path to rsync binary")
             flags.Var(&(config.rsyncOpts),
-                "rsyncOpts", // default value set above
+                "rsyncOpts",
                 "additional options for rsync")
             flags.StringVar(&(config.origin),
                 "origin", "/tmp/snaprd_test/",
