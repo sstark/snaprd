@@ -181,7 +181,7 @@ func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
     if err != nil {
-        return nil, errors.New("destination path " + config.repository + " does not exist yet")
+        return nil, errors.New("repository " + config.repository + " does not exist")
     }
     for _, f := range files {
         // normal files are allowed but ignored
