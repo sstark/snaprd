@@ -23,25 +23,25 @@ const (
 
 func (st SnapshotState) String() string {
     s := ""
-    if st & STATE_INCOMPLETE == STATE_INCOMPLETE {
+    if st&STATE_INCOMPLETE == STATE_INCOMPLETE {
         s += ":Incomplete"
     }
-    if st & STATE_COMPLETE == STATE_COMPLETE {
+    if st&STATE_COMPLETE == STATE_COMPLETE {
         s += ":Complete"
     }
-    if st & STATE_OBSOLETE == STATE_OBSOLETE {
+    if st&STATE_OBSOLETE == STATE_OBSOLETE {
         s += ":Obsolete"
     }
-    if st & STATE_INDELETION == STATE_INDELETION {
+    if st&STATE_INDELETION == STATE_INDELETION {
         s += ":Indeletion"
     }
     return s
 }
 
 type Snapshot struct {
-    startTime int64
-    endTime int64
-    state SnapshotState
+    startTime   int64
+    endTime     int64
+    state       SnapshotState
 }
 
 func unixTimestamp() int64 {
@@ -88,7 +88,7 @@ func tryLink(target string) {
     }
     if fi != nil {
         // link exists
-        if fi.Mode() & os.ModeSymlink == os.ModeSymlink {
+        if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
             // link is indeed a symlink
             err = os.Remove(linkName)
             if err != nil {
@@ -137,7 +137,7 @@ func (sl SnapshotList) lastGood() *Snapshot {
             ix = i
         }
     }
-    if ix == -1  {
+    if ix == -1 {
         return nil
     }
     return sl[ix]

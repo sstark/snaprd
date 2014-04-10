@@ -25,10 +25,10 @@ func (o *Opts) Set(value string) error {
 
 // use own struct as "backing store" for parsed flags
 type Config struct {
-    rsyncPath string
-    rsyncOpts Opts
-    origin string
-    repository string
+    rsyncPath   string
+    rsyncOpts   Opts
+    origin      string
+    repository  string
 }
 
 var cmd string = ""

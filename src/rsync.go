@@ -16,7 +16,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     args = append(args, "-a")
     args = append(args, config.rsyncOpts...)
     if base != nil {
-        args = append(args, "--link-dest=" + filepath.Join(config.repository, base.Name()))
+        args = append(args, "--link-dest="+filepath.Join(config.repository, base.Name()))
     }
     args = append(args, config.origin, filepath.Join(config.repository, sn.Name()))
     cmd.Args = args
@@ -67,7 +67,6 @@ func runRsyncCommand(cmd *exec.Cmd) error {
     }
     return nil
 }
-
 
 func CreateSnapshot(c chan error, base *Snapshot) {
     // first snapshot
