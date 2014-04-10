@@ -79,7 +79,7 @@ func (s *Snapshot) Name() (n string) {
 // Do not fail if not possible since it is more important
 // to continue creating new snapshots.
 func tryLink(target string) {
-    linkName := filepath.Join(config.dstPath, "latest")
+    linkName := filepath.Join(config.repository, "latest")
     fi, err := os.Lstat(linkName)
     if err != nil {
         // link does not exist or can not be read
@@ -105,7 +105,7 @@ func tryLink(target string) {
 }
 
 func (s *Snapshot) transComplete() {
-    oldName := filepath.Join(config.dstPath, s.Name())
+    oldName := filepath.Join(config.repository, s.Name())
     etime := unixTimestamp()
     if etime < s.startTime {
         log.Fatal("endTime before startTime!")
@@ -116,7 +116,7 @@ func (s *Snapshot) transComplete() {
     }
     s.endTime = etime
     s.state = STATE_COMPLETE
-    newName := filepath.Join(config.dstPath, s.Name())
+    newName := filepath.Join(config.repository, s.Name())
     err := os.Rename(oldName, newName)
     if err != nil {
         log.Fatal(err)
@@ -178,9 +178,9 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
 
 func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
-    files, err := ioutil.ReadDir(filepath.Join(config.dstPath, ""))
+    files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
     if err != nil {
-        return nil, errors.New("destination path " + config.dstPath + " does not exist yet")
+        return nil, errors.New("destination path " + config.repository + " does not exist yet")
     }
     for _, f := range files {
         // normal files are allowed but ignored

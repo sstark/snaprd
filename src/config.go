@@ -28,9 +28,8 @@ func (o *Opts) Set(value string) error {
 type Config struct {
     rsyncPath string
     rsyncOpts Opts
-    srcPath string
-    dstPath string
-    wrkPath string
+    origin string
+    repository string
 }
 
 var cmd string = ""
@@ -53,15 +52,22 @@ func LoadConfig() *Config {
             flags.Var(&(config.rsyncOpts),
                 "rsyncOpts", // default value set above
                 "additional options for rsync")
-            flags.StringVar(&(config.srcPath),
-                "srcPath", "/tmp/snaprd_test/",
+            flags.StringVar(&(config.origin),
+                "origin", "/tmp/snaprd_test/",
                 "data source")
-            flags.StringVar(&(config.dstPath),
-                "dstPath", "/tmp/snaprd_dest",
+            flags.StringVar(&(config.repository),
+                "repository", "/tmp/snaprd_dest",
                 "where to store snapshots")
-            flags.StringVar(&(config.wrkPath),
-                "workPath", "/tmp",
-                "working path")
+            flags.Parse(os.Args[2:])
+            log.Println(cmd, config)
+            return config
+        }
+    case "list":
+        {
+            flags := flag.NewFlagSet(cmd, flag.ExitOnError)
+            flags.StringVar(&(config.repository),
+                "repository", "/tmp/snaprd_dest",
+                "where snapshots are located")
             flags.Parse(os.Args[2:])
             log.Println(cmd, config)
             return config

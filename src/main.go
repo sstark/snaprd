@@ -3,6 +3,8 @@ package main
 import (
     "log"
     "time"
+    "fmt"
+    "os"
 )
 
 var config *Config
@@ -19,6 +21,9 @@ func main() {
         log.Println(err)
     }
     log.Println("found", len(snapshots), "snapshots")
+
+    switch cmd {
+    case "run": {
     lastGood := snapshots.lastGood()
     if lastGood != nil {
         log.Println("lastgood:", lastGood)
@@ -38,5 +43,13 @@ func main() {
             log.Println("timeout")
             return
         }
+    }
+    }
+    case "list": {
+        for _, sn := range snapshots {
+            fmt.Println(sn)
+        }
+        os.Exit(0)
+    }
     }
 }

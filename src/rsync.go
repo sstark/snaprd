@@ -15,11 +15,11 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     args = append(args, config.rsyncPath)
     args = append(args, config.rsyncOpts...)
     if base != nil {
-        args = append(args, "--link-dest=" + filepath.Join(config.dstPath, base.Name()))
+        args = append(args, "--link-dest=" + filepath.Join(config.repository, base.Name()))
     }
-    args = append(args, config.srcPath, filepath.Join(config.dstPath, sn.Name()))
+    args = append(args, config.origin, filepath.Join(config.repository, sn.Name()))
     cmd.Args = args
-    cmd.Dir = config.wrkPath
+    cmd.Dir = config.repository
     log.Println("run:", args)
     return cmd
 }
@@ -71,8 +71,8 @@ func runRsyncCommand(cmd *exec.Cmd) error {
 func CreateSnapshot(c chan error, base *Snapshot) {
     // first snapshot
     if base == nil {
-        log.Println("creating destination directory for initial snapshot:", config.dstPath)
-        err := os.MkdirAll(config.dstPath, 00755)
+        log.Println("creating destination directory for initial snapshot:", config.repository)
+        err := os.MkdirAll(config.repository, 00755)
         if err != nil {
             log.Fatal(err)
         }
