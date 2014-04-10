@@ -9,7 +9,7 @@ do
         mkdir -p $root/$a/$b
         for c in 1 2 3 4 5
         do
-            touch $root/$a/$b/$c.dat
+            dd if=/dev/zero of=$root/$a/$b/$c.dat bs=10k count=5k
         done
     done
 done
