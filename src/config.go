@@ -34,6 +34,19 @@ type Config struct {
 
 var cmd string = ""
 
+func usage() {
+    fmt.Printf(`usage: %s <command> <options>
+Commands:
+    run     Periodically create snapshots
+    list    List snapshots
+    help    Show usage instructions
+Use <command> -h to show possible options for <command>.
+Examples:
+    %s run -origin=fileserver:/export/projects -repository=/snapshots/projects
+    %s list -repository=/snapshots/projects
+`, myName, myName, myName)
+}
+
 func LoadConfig() *Config {
     config := new(Config)
     config.rsyncOpts = []string{"-a"}
@@ -74,7 +87,7 @@ func LoadConfig() *Config {
         }
     case "help", "-h", "--help":
         {
-            fmt.Println("usage info...")
+            usage()
             os.Exit(0)
         }
     default:
