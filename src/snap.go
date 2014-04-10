@@ -9,6 +9,7 @@ import (
     "strconv"
     "strings"
     "errors"
+    "fmt"
 )
 
 type SnapshotState int
@@ -58,7 +59,7 @@ func newIncompleteSnapshot() *Snapshot {
 func (s *Snapshot) String() string {
     stime := strconv.FormatInt(s.startTime, 10)
     etime := strconv.FormatInt(s.endTime, 10)
-    return stime + "-" + etime + " S" + s.state.String()
+    return fmt.Sprintf("%s-%s S%s", stime, etime, s.state.String())
 }
 
 func (s *Snapshot) Name() (n string) {

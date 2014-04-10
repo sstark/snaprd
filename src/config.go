@@ -14,12 +14,11 @@ type Opts []string
 
 // Opts getter
 func (o *Opts) String() string {
-    return "\"" + strings.Join(*o, " ") + "\""
+    return fmt.Sprintf("\"%s\"", strings.Join(*o, ""))
 }
 
 // Opts setter
 func (o *Opts) Set(value string) error {
-    fmt.Printf("%s\n", value)
     *o = strings.Split(value, " ")
     return nil
 }
