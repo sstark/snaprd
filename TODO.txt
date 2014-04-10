@@ -1,0 +1,7 @@
+- deletion thread
+- pretty symlinks for users
+- check for free space
+- signal handling
+- periodic snapshotting
+- configurable timetable
+- make sure only a single instance is running at a time
