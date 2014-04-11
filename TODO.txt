@@ -2,6 +2,8 @@
 - pretty symlinks for users
 - check for free space
 - signal handling
+  - need to send SIGTERM twice within e. g. 3 seconds in order to quit
+    immediately, otherwise quit after finishing all tasks
 - periodic snapshotting
 - configurable timetable
 - make sure only a single instance is running at a time
