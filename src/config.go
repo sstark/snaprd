@@ -31,6 +31,14 @@ type Config struct {
     repository  string
 }
 
+func (c *Config) String() string {
+    if c.origin != "" {
+        return fmt.Sprintf("Repository: %s, Origin: %s", c.repository, c.origin)
+    } else {
+        return fmt.Sprintf("Repository: %s", c.repository)
+    }
+}
+
 var cmd string = ""
 
 func usage() {
@@ -80,7 +88,7 @@ func LoadConfig() *Config {
                 "repository", "/tmp/snaprd_dest",
                 "where snapshots are located")
             flags.Parse(os.Args[2:])
-            log.Println(cmd, config)
+            fmt.Println(config)
             return config
         }
     case "help", "-h", "--help":
