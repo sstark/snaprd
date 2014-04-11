@@ -9,6 +9,29 @@ import (
 
 var config *Config
 
+func runLoop(snapshots SnapshotList, c chan error) {
+    lastGood := snapshots.lastGood()
+    if lastGood != nil {
+        log.Println("lastgood:", lastGood)
+    } else {
+        log.Println("lastgood: could not find suitable base snapshot")
+    }
+    go CreateSnapshot(c, lastGood)
+    for {
+        select {
+        case e := <-c:
+            if e == nil {
+                log.Println("Snapshot created")
+            } else {
+                log.Println("rsync error:", e)
+            }
+        case <-time.After(time.Hour * 10):
+            log.Println("timeout")
+            return
+        }
+    }
+}
+
 func main() {
     log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
     var c chan error = make(chan error)
@@ -23,29 +46,7 @@ func main() {
     log.Println("found", len(snapshots), "snapshots in repository", config.repository)
 
     switch cmd {
-    case "run":
-        {
-            lastGood := snapshots.lastGood()
-            if lastGood != nil {
-                log.Println("lastgood:", lastGood)
-            } else {
-                log.Println("lastgood: could not find suitable base snapshot")
-            }
-            go CreateSnapshot(c, lastGood)
-            for {
-                select {
-                case e := <-c:
-                    if e == nil {
-                        log.Println("Snapshot created")
-                    } else {
-                        log.Println("rsync error:", e)
-                    }
-                case <-time.After(time.Hour * 10):
-                    log.Println("timeout")
-                    return
-                }
-            }
-        }
+    case "run": runLoop(snapshots, c)
     case "list":
         {
             for _, sn := range snapshots {
