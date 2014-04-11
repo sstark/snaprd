@@ -20,7 +20,7 @@ func main() {
     if err != nil {
         log.Println(err)
     }
-    log.Println("found", len(snapshots), "snapshots")
+    log.Println("found", len(snapshots), "snapshots in repository", config.repository)
 
     switch cmd {
     case "run":
