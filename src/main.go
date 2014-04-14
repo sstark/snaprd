@@ -12,7 +12,7 @@ var config *Config
 
 func runLoop() {
         for {
-            snapshots, err := FindSnapshots()
+            snapshots, err := FindSnapshots(ALL)
             if err != nil {
                 log.Println(err)
             }
@@ -27,6 +27,7 @@ func runLoop() {
             wg.Add(1)
             go CreateSnapshot(&wg, lastGood)
             wg.Wait()
+            prune()
             log.Println("waiting...")
             time.Sleep(time.Hour)
         }
@@ -43,7 +44,7 @@ func main() {
     case "run": runLoop()
     case "list":
         {
-            snapshots, err := FindSnapshots()
+            snapshots, err := FindSnapshots(ALL)
             if err != nil {
                 log.Println(err)
             }
@@ -57,5 +58,6 @@ func main() {
             }
             os.Exit(0)
         }
+    case "prune": prune()
     }
 }

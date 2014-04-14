@@ -91,6 +91,16 @@ func LoadConfig() *Config {
             fmt.Println(config)
             return config
         }
+    case "prune":
+        {
+            flags := flag.NewFlagSet(cmd, flag.ExitOnError)
+            flags.StringVar(&(config.repository),
+                "repository", "/tmp/snaprd_dest",
+                "where snapshots are located")
+            flags.Parse(os.Args[2:])
+            fmt.Println(config)
+            return config
+        }
     case "help", "-h", "--help":
         {
             usage()

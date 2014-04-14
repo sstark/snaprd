@@ -21,6 +21,8 @@ const (
     STATE_INDELETION
 )
 
+const ALL SnapshotState = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_INDELETION
+
 func (st SnapshotState) String() string {
     s := ""
     if st&STATE_INCOMPLETE == STATE_INCOMPLETE {
@@ -125,6 +127,16 @@ func (s *Snapshot) transComplete() {
     tryLink(newName)
 }
 
+func (s *Snapshot) transObsolete() {
+    oldName := filepath.Join(config.repository, s.Name())
+    s.state = s.state | STATE_OBSOLETE
+    newName := filepath.Join(config.repository, s.Name())
+    err := os.Rename(oldName, newName)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
 type SnapshotList []*Snapshot
 
 // find the last snapshot to use as a basis for the next one
@@ -177,7 +189,7 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
     return stime, etime, state, nil
 }
 
-func FindSnapshots() (SnapshotList, error) {
+func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
     if err != nil {
@@ -192,7 +204,9 @@ func FindSnapshots() (SnapshotList, error) {
                 continue
             }
             sn := newSnapshot(stime, etime, state)
-            snapshots = append(snapshots, sn)
+            if sn.state | filterState == filterState {
+                snapshots = append(snapshots, sn)
+            }
         }
     }
     return snapshots, nil
