@@ -27,7 +27,9 @@ func runLoop() {
             wg.Add(1)
             go CreateSnapshot(&wg, lastGood)
             wg.Wait()
-            prune()
+            for i:=0; i<len(intervals); i++ {
+                prune()
+            }
             log.Println("waiting...")
             time.Sleep(time.Hour)
         }

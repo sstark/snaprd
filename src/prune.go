@@ -9,7 +9,7 @@ import (
 const day int64 = 86400
 const week int64 = 604800
 const month int64 = 2419200 //month == 4 weeks
-const future int64 = 9999999999 //some unreachable time
+const future int64 = 9999999999 //the date this program will stop working
 
 /*
   The lowest interval will always be given by how often runLoop() is
