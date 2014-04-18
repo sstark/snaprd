@@ -10,7 +10,7 @@ import (
 
 var config *Config
 
-func runLoop() {
+func cmdRun() {
         for {
             snapshots, err := FindSnapshots(ALL)
             if err != nil {
@@ -36,35 +36,34 @@ func runLoop() {
         }
 }
 
+func cmdList() {
+    snapshots, err := FindSnapshots(ALL)
+    if err != nil {
+        log.Println(err)
+    }
+    for i, sn := range snapshots {
+        stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
+        var dur time.Duration = 0
+        var dist time.Duration = 0
+        if sn.endTime.After(sn.startTime) {
+            dur = sn.endTime.Sub(sn.startTime)
+            if i < len(snapshots)-1 {
+                dist = snapshots[i+1].startTime.Sub(sn.startTime)
+            }
+        }
+        fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
+    }
+    os.Exit(0)
+}
+
 func main() {
     log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
     config = LoadConfig()
     if config == nil {
         log.Fatal("no config, don't know what to do!")
     }
-
     switch cmd {
-    case "run": runLoop()
-    case "list":
-        {
-            snapshots, err := FindSnapshots(ALL)
-            if err != nil {
-                log.Println(err)
-            }
-            for i, sn := range snapshots {
-                stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
-                var dur time.Duration = 0
-                var dist time.Duration = 0
-                if sn.endTime.After(sn.startTime) {
-                    dur = sn.endTime.Sub(sn.startTime)
-                    if i < len(snapshots)-1 {
-                        dist = snapshots[i+1].startTime.Sub(sn.startTime)
-                    }
-                }
-                fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
-            }
-            os.Exit(0)
-        }
-    case "prune": prune()
+    case "run": cmdRun()
+    case "list": cmdList()
     }
 }
