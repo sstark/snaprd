@@ -61,7 +61,7 @@ func main() {
                         dist = time.Duration(snapshots[i+1].startTime-sn.startTime) * time.Second
                     }
                 }
-                fmt.Printf("* %s (%s, %s) \"%s\" S%s\n", stime, dur, dist, sn.Name(), sn.state)
+                fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
             }
             os.Exit(0)
         }
