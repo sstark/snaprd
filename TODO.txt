@@ -8,3 +8,5 @@
 - configurable timetable
 - make sure only a single instance is running at a time
 - make list command show snapshots as a tree. Maybe optional
+- investigate rsync option -y, --fuzzy
+- fix "latest" link after pruning
