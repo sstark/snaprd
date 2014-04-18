@@ -11,3 +11,5 @@
 - delete obsolete snapshots
 - how to deal with oldest snapshot?
 - subtract duration of last snapshot from waiting time
+- when restarting snaprd after a while, it will obsolete many snapshots.
+  This is okay, as long as the deletion will be more conservative
