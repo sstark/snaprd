@@ -4,9 +4,10 @@
 - signal handling
   - need to send SIGTERM twice within e. g. 3 seconds in order to quit
     immediately, otherwise quit after finishing all tasks
-- periodic snapshotting
-- configurable timetable
 - make sure only a single instance is running at a time
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
 - fix "latest" link after pruning
+- delete obsolete snapshots
+- how to deal with oldest snapshot?
+- subtract duration of last snapshot from waiting time
