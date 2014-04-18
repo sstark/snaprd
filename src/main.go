@@ -30,8 +30,8 @@ func runLoop() {
             for i:=0; i<len(schedules[config.schedule]); i++ {
                 prune()
             }
-            waitTime := time.Second * time.Duration(schedules[config.schedule][0])
-            log.Println("waiting for", time.Duration(waitTime))
+            waitTime := schedules[config.schedule][0]
+            log.Println("waiting for", waitTime)
             time.Sleep(waitTime)
         }
 }
@@ -52,13 +52,13 @@ func main() {
                 log.Println(err)
             }
             for i, sn := range snapshots {
-                stime := time.Unix(sn.startTime, 0).Format("2006-01-02 Monday 15:04:05")
+                stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
                 var dur time.Duration = 0
                 var dist time.Duration = 0
-                if sn.endTime > sn.startTime {
-                    dur = time.Duration(sn.endTime-sn.startTime) * time.Second
+                if sn.endTime.After(sn.startTime) {
+                    dur = sn.endTime.Sub(sn.startTime)
                     if i < len(snapshots)-1 {
-                        dist = time.Duration(snapshots[i+1].startTime-sn.startTime) * time.Second
+                        dist = snapshots[i+1].startTime.Sub(sn.startTime)
                     }
                 }
                 fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)

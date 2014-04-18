@@ -41,39 +41,35 @@ func (st SnapshotState) String() string {
 }
 
 type Snapshot struct {
-    startTime   int64
-    endTime     int64
+    startTime   time.Time
+    endTime     time.Time
     state       SnapshotState
 }
 
-func unixTimestamp() int64 {
-    return time.Now().Unix()
-}
-
-func newSnapshot(startTime int64, endTime int64, state SnapshotState) *Snapshot {
+func newSnapshot(startTime, endTime time.Time, state SnapshotState) *Snapshot {
     return &Snapshot{startTime, endTime, state}
 }
 
 func newIncompleteSnapshot() *Snapshot {
-    return &Snapshot{unixTimestamp(), 0, STATE_INCOMPLETE}
+    return &Snapshot{time.Now(), time.Time{}, STATE_INCOMPLETE}
 }
 
 func (s *Snapshot) String() string {
-    stime := strconv.FormatInt(s.startTime, 10)
-    etime := strconv.FormatInt(s.endTime, 10)
-    return fmt.Sprintf("%s-%s S%s", stime, etime, s.state.String())
+    stime := s.startTime.Unix()
+    etime := s.endTime.Unix()
+    return fmt.Sprintf("%d-%d S%s", stime, etime, s.state.String())
 }
 
 func (s *Snapshot) Name() (n string) {
-    stime := strconv.FormatInt(s.startTime, 10)
-    etime := strconv.FormatInt(s.endTime, 10)
+    stime := s.startTime.Unix()
+    etime := s.endTime.Unix()
     switch s.state {
     case STATE_INCOMPLETE:
-        return stime + "-" + "0" + "-incomplete"
+        return fmt.Sprintf("%d-0-incomplete", stime)
     case STATE_COMPLETE:
-        return stime + "-" + etime + "-complete"
+        return fmt.Sprintf("%d-%d-complete", stime, etime)
     case STATE_COMPLETE | STATE_OBSOLETE:
-        return stime + "-" + etime + "-complete,obsolete"
+        return fmt.Sprintf("%d-%d-complete,obsolete", stime, etime)
     }
     return ""
 }
@@ -109,13 +105,13 @@ func tryLink(target string) {
 
 func (s *Snapshot) transComplete() {
     oldName := filepath.Join(config.repository, s.Name())
-    etime := unixTimestamp()
-    if etime < s.startTime {
+    etime := time.Now()
+    if etime.Before(s.startTime) {
         log.Fatal("endTime before startTime!")
     }
     // make all snapshots at least 1 second long
-    if etime == s.startTime {
-        etime += 1
+    if etime.Sub(s.startTime).Seconds() < 1 {
+        etime = etime.Add(time.Second)
     }
     s.endTime = etime
     s.state = STATE_COMPLETE
@@ -141,10 +137,10 @@ type SnapshotList []*Snapshot
 
 // find the last snapshot to use as a basis for the next one
 func (sl SnapshotList) lastGood() *Snapshot {
-    var t int64 = 0
+    var t time.Time
     var ix int = -1
     for i, sn := range sl {
-        if (sn.startTime > t) && (sn.state == STATE_COMPLETE) {
+        if (sn.startTime.After(t)) && (sn.state == STATE_COMPLETE) {
             t = sn.startTime
             ix = i
         }
@@ -155,18 +151,19 @@ func (sl SnapshotList) lastGood() *Snapshot {
     return sl[ix]
 }
 
-func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
+func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
     sa := strings.Split(s, "-")
+    var zero time.Time
     if len(sa) != 3 {
-        return 0, 0, 0, errors.New("malformed snapshot name: " + s)
+        return zero, zero, 0, errors.New("malformed snapshot name: " + s)
     }
     stime, err := strconv.ParseInt(sa[0], 10, 64)
     if err != nil {
-        return 0, 0, 0, err
+        return zero, zero, 0, err
     }
     etime, err := strconv.ParseInt(sa[1], 10, 64)
     if err != nil {
-        return 0, 0, 0, err
+        return zero, zero, 0, err
     }
     var state SnapshotState = 0
     stateInfo := strings.Split(sa[2], ",")
@@ -184,9 +181,9 @@ func parseSnapshotName(s string) (int64, int64, SnapshotState, error) {
     }
     // no state tags found
     if state == 0 {
-        return stime, etime, state, errors.New("could not parse state: " + s)
+        return time.Unix(stime, 0), time.Unix(etime, 0), state, errors.New("could not parse state: " + s)
     }
-    return stime, etime, state, nil
+    return time.Unix(stime, 0), time.Unix(etime, 0), state, nil
 }
 
 func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
