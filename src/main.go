@@ -27,11 +27,12 @@ func runLoop() {
             wg.Add(1)
             go CreateSnapshot(&wg, lastGood)
             wg.Wait()
-            for i:=0; i<len(intervals); i++ {
+            for i:=0; i<len(schedules[config.schedule]); i++ {
                 prune()
             }
-            log.Println("waiting...")
-            time.Sleep(time.Second * 5)
+            waitTime := time.Second * time.Duration(schedules[config.schedule][0])
+            log.Println("waiting for", time.Duration(waitTime))
+            time.Sleep(waitTime)
         }
 }
 

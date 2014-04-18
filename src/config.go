@@ -29,6 +29,7 @@ type Config struct {
     rsyncOpts   Opts
     origin      string
     repository  string
+    schedule    string
 }
 
 func (c *Config) String() string {
@@ -77,21 +78,14 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where to store snapshots")
+            flags.StringVar(&(config.schedule),
+                "schedule", "longterm",
+                "choose a schedule")
             flags.Parse(os.Args[2:])
             log.Println(cmd, config)
             return config
         }
     case "list":
-        {
-            flags := flag.NewFlagSet(cmd, flag.ExitOnError)
-            flags.StringVar(&(config.repository),
-                "repository", "/tmp/snaprd_dest",
-                "where snapshots are located")
-            flags.Parse(os.Args[2:])
-            fmt.Println(config)
-            return config
-        }
-    case "prune":
         {
             flags := flag.NewFlagSet(cmd, flag.ExitOnError)
             flags.StringVar(&(config.repository),

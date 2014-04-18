@@ -5,13 +5,8 @@ import (
     "time"
 )
 
-/*
-const day int64 = 86400
-const week int64 = 604800
-const month int64 = 2419200 //month == 4 weeks
-const future int64 = 9999999999 //the date this program will stop working
-*/
-const day int64 = 86400
+const hour int64 = 3600
+const day int64 = hour*24
 const week int64 = day*7
 const month int64 = week*4 //month == 4 weeks
 const future int64 = 9999999999 //the date this program will stop working
@@ -28,8 +23,10 @@ const future int64 = 9999999999 //the date this program will stop working
 
   The span of an interval is always the snapshot distance of the next interval.
 */
-//var intervals = [...]int64{day, week, month, future}
-var intervals = [...]int64{20, 140, 560, 9999999999}
+var schedules = map[string][]int64{
+    "longterm": {hour*6, day, week, month, future},
+    "testing": {5, 20, 140, 560, future},
+}
 
 // return all snapshots where stime between low and high
 // TODO make sure we get a sorted list, don't rely on file system!
@@ -51,7 +48,9 @@ func findSnapshotsInInterval(low, high int64) SnapshotList {
 // TODO should add more checks:
 // - don't delete hardlink base
 func prune() {
-    for i := 0; i < len(intervals)-1; i++ {
+    intervals := schedules[config.schedule]
+    // interval 0 does not need pruning, start with 1
+    for i := 1; i < len(intervals)-1; i++ {
         var low int64
         for j := 0; j <= i; j++ {
             low += intervals[j]
