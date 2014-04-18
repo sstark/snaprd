@@ -83,6 +83,9 @@ func LoadConfig() *Config {
                 "choose a schedule")
             flags.Parse(os.Args[2:])
             log.Println(cmd, config)
+            if _, ok := schedules[config.schedule]; ok == false {
+                log.Fatalln("no such schedule:", config.schedule)
+            }
             return config
         }
     case "list":
