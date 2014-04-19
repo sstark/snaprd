@@ -71,7 +71,7 @@ func (s *Snapshot) Name() (n string) {
     case STATE_COMPLETE | STATE_OBSOLETE:
         return fmt.Sprintf("%d-%d-complete,obsolete", stime, etime)
     }
-    return ""
+    return fmt.Sprintf("%d-%d-unknown", stime, etime)
 }
 
 // Mark the latest snapshot for easy access.
