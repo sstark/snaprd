@@ -193,17 +193,21 @@ func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
         return nil, errors.New("repository " + config.repository + " does not exist")
     }
     for _, f := range files {
-        // normal files are allowed but ignored
-        if f.IsDir() {
-            stime, etime, state, err := parseSnapshotName(f.Name())
-            if err != nil {
-                log.Println(err)
-                continue
-            }
-            sn := newSnapshot(stime, etime, state)
-            if sn.state | filterState == filterState {
-                snapshots = append(snapshots, sn)
-            }
+        if !f.IsDir() {
+            continue
+        }
+        stime, etime, state, err := parseSnapshotName(f.Name())
+        if err != nil {
+            log.Println(err)
+            continue
+        }
+        if stime.After(time.Now()) {
+            log.Println("ignoring snapshot with startTime in future:", f.Name())
+            continue
+        }
+        sn := newSnapshot(stime, etime, state)
+        if sn.state | filterState == filterState {
+            snapshots = append(snapshots, sn)
         }
     }
     return snapshots, nil
