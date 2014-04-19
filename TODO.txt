@@ -13,4 +13,3 @@
 - subtract duration of last snapshot from waiting time
 - when restarting snaprd after a while, it will obsolete many snapshots.
   This is okay, as long as the deletion will be more conservative
-- panic if snapshots with future starttime are found

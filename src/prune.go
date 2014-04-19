@@ -5,8 +5,6 @@ import (
     "time"
 )
 
-// return all snapshots where stime between low and high
-// TODO make sure we get a sorted list, don't rely on file system!
 func findSnapshotsInInterval(after, before time.Time) SnapshotList {
     allSnapshots, err := FindSnapshots(ALL - STATE_OBSOLETE - STATE_INCOMPLETE)
     if err != nil {

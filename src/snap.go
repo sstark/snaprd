@@ -10,6 +10,7 @@ import (
     "strings"
     "errors"
     "fmt"
+    "sort"
 )
 
 type SnapshotState int
@@ -186,6 +187,18 @@ func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
     return time.Unix(stime, 0), time.Unix(etime, 0), state, nil
 }
 
+type SnapshotListByStartTime SnapshotList
+
+func (sl SnapshotListByStartTime) Len() int {
+    return len(sl)
+}
+func (sl SnapshotListByStartTime) Swap(i, j int) {
+    sl[i], sl[j] = sl[j], sl[i]
+}
+func (sl SnapshotListByStartTime) Less(i, j int) bool {
+    return sl[i].startTime.Before(sl[j].startTime)
+}
+
 func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
@@ -210,5 +223,6 @@ func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
             snapshots = append(snapshots, sn)
         }
     }
+    sort.Sort(SnapshotListByStartTime(snapshots))
     return snapshots, nil
 }
