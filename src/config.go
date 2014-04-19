@@ -40,7 +40,7 @@ func (c *Config) String() string {
     }
 }
 
-var cmd string = ""
+var subcmd string = ""
 
 func usage() {
     fmt.Printf(`usage: %s <command> <options>
@@ -58,14 +58,14 @@ Examples:
 func LoadConfig() *Config {
     config := new(Config)
     if len(os.Args) > 1 {
-        cmd = os.Args[1]
+        subcmd = os.Args[1]
     } else {
         log.Fatal("no subcommand given")
     }
-    switch cmd {
+    switch subcmd {
     case "run":
         {
-            flags := flag.NewFlagSet(cmd, flag.ExitOnError)
+            flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
             flags.StringVar(&(config.rsyncPath),
                 "rsyncPath", "/usr/bin/rsync",
                 "path to rsync binary")
@@ -82,7 +82,7 @@ func LoadConfig() *Config {
                 "schedule", "longterm",
                 "choose a schedule")
             flags.Parse(os.Args[2:])
-            log.Println(cmd, config)
+            log.Println(subcmd, config)
             if _, ok := schedules[config.schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.schedule)
             }
@@ -90,7 +90,7 @@ func LoadConfig() *Config {
         }
     case "list":
         {
-            flags := flag.NewFlagSet(cmd, flag.ExitOnError)
+            flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
             flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where snapshots are located")
@@ -105,7 +105,7 @@ func LoadConfig() *Config {
         }
     default:
         {
-            log.Println("unknown subcommand:", cmd)
+            log.Println("unknown subcommand:", subcmd)
             log.Fatalln("try \"help\"")
         }
     }

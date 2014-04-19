@@ -10,7 +10,7 @@ import (
 
 var config *Config
 
-func cmdRun() {
+func subcmdRun() {
         for {
             snapshots, err := FindSnapshots(ALL)
             if err != nil {
@@ -36,7 +36,7 @@ func cmdRun() {
         }
 }
 
-func cmdList() {
+func subcmdList() {
     snapshots, err := FindSnapshots(ALL)
     if err != nil {
         log.Println(err)
@@ -62,8 +62,8 @@ func main() {
     if config == nil {
         log.Fatal("no config, don't know what to do!")
     }
-    switch cmd {
-    case "run": cmdRun()
-    case "list": cmdList()
+    switch subcmd {
+    case "run": subcmdRun()
+    case "list": subcmdList()
     }
 }
