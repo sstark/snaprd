@@ -51,7 +51,11 @@ func subcmdList() {
                 dist = snapshots[i+1].startTime.Sub(sn.startTime)
             }
         }
-        fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
+        if config.verbose {
+            fmt.Printf("* %s (%s, %s) S%s \"%s\"\n", stime, dur, dist, sn.state, sn.Name())
+        } else {
+            fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
+        }
     }
     os.Exit(0)
 }

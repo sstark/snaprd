@@ -30,6 +30,7 @@ type Config struct {
     origin      string
     repository  string
     schedule    string
+    verbose     bool
 }
 
 func (c *Config) String() string {
@@ -94,6 +95,9 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where snapshots are located")
+            flags.BoolVar(&(config.verbose),
+                "v", false,
+                "show more information")
             flags.Parse(os.Args[2:])
             fmt.Println(config)
             return config
