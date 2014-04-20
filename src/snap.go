@@ -22,7 +22,7 @@ const (
     STATE_INDELETION
 )
 
-const ALL SnapshotState = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_INDELETION
+const ANY SnapshotState = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_INDELETION
 
 func (st SnapshotState) String() string {
     s := ""

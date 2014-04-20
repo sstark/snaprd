@@ -12,7 +12,7 @@ var config *Config
 
 func subcmdRun() {
         for {
-            snapshots, err := FindSnapshots(ALL)
+            snapshots, err := FindSnapshots(ANY)
             if err != nil {
                 log.Println(err)
             }
@@ -37,7 +37,7 @@ func subcmdRun() {
 }
 
 func subcmdList() {
-    snapshots, err := FindSnapshots(ALL)
+    snapshots, err := FindSnapshots(ANY)
     if err != nil {
         log.Println(err)
     }

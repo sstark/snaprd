@@ -6,7 +6,7 @@ import (
 )
 
 func findSnapshotsInInterval(after, before time.Time) SnapshotList {
-    allSnapshots, err := FindSnapshots(ALL - STATE_OBSOLETE - STATE_INCOMPLETE)
+    allSnapshots, err := FindSnapshots(ANY - STATE_OBSOLETE - STATE_INCOMPLETE)
     if err != nil {
         log.Println(err)
     }
