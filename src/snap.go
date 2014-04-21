@@ -22,7 +22,7 @@ const (
     STATE_INDELETION
 )
 
-const ANY SnapshotState = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_INDELETION
+const ANY SnapshotState = 0
 
 func (st SnapshotState) String() string {
     s := ""
@@ -219,7 +219,8 @@ func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
             continue
         }
         sn := newSnapshot(stime, etime, state)
-        if sn.state | filterState == filterState {
+        //log.Println("filter:", strconv.FormatInt(int64(sn.state), 2), strconv.FormatInt(int64(filterState), 2), strconv.FormatBool(sn.state | filterState == sn.state))
+        if sn.state | filterState == sn.state {
             snapshots = append(snapshots, sn)
         }
     }
