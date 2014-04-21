@@ -1,4 +1,3 @@
-- deletion thread
 - pretty symlinks for users
 - check for free space
 - signal handling
@@ -8,8 +7,15 @@
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
 - fix "latest" link after pruning
-- delete obsolete snapshots
 - how to deal with oldest snapshot?
-- subtract duration of last snapshot from waiting time
+  - special prune for highest interval:
+    - by free block/inode space
+    - option "-maxKeep":
+        how many snapshot to keep in highest interval
+    - option "-keepOldest":
+        wether to keep the oldest snapshot (thus being able to go back to the beginning)
+        or not, saving disk space.
 - when restarting snaprd after a while, it will obsolete many snapshots.
   This is okay, as long as the deletion will be more conservative
+- make purge() pick up STATE_INDELETION snapshots
+- redesign FindSnapshots() filter feature
