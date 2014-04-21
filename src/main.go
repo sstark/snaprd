@@ -6,6 +6,8 @@ import (
     "fmt"
     "os"
     "path/filepath"
+    "os/signal"
+    "syscall"
 )
 
 var config *Config
@@ -54,7 +56,9 @@ func subcmdRun() {
         }
     }, time.Second*3)
 
-    time.Sleep(time.Hour * 100000)
+    c := make(chan os.Signal, 1)
+    signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+    fmt.Println("Got signal:", <-c)
 }
 
 func subcmdList() {
