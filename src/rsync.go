@@ -7,7 +7,6 @@ import (
     "io"
     "path/filepath"
     "os"
-    "sync"
 )
 
 func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
@@ -69,7 +68,7 @@ func runRsyncCommand(cmd *exec.Cmd) error {
     return nil
 }
 
-func CreateSnapshot(wg *sync.WaitGroup, base *Snapshot) {
+func CreateSnapshot(base *Snapshot) {
     // first snapshot
     if base == nil {
         log.Println("creating destination directory for initial snapshot:", config.repository)
@@ -91,5 +90,4 @@ func CreateSnapshot(wg *sync.WaitGroup, base *Snapshot) {
     */
     newSn.transComplete()
     log.Println("finished:", newSn.Name())
-    wg.Done()
 }

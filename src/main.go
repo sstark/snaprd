@@ -5,35 +5,56 @@ import (
     "time"
     "fmt"
     "os"
-    "sync"
+    "path/filepath"
 )
 
 var config *Config
 
+func periodic(f func(), d time.Duration) {
+    ticker := time.NewTicker(d)
+    for {
+        <-ticker.C
+        f()
+    }
+}
+
 func subcmdRun() {
-        for {
-            snapshots, err := FindSnapshots(ANY)
-            if err != nil {
-                log.Println(err)
-            }
-            log.Println("found", len(snapshots), "snapshots in repository", config.repository)
-            lastGood := snapshots.lastGood()
-            if lastGood != nil {
-                log.Println("lastgood:", lastGood)
-            } else {
-                log.Println("lastgood: could not find suitable base snapshot")
-            }
-            var wg sync.WaitGroup
-            wg.Add(1)
-            go CreateSnapshot(&wg, lastGood)
-            wg.Wait()
-            for i:=0; i<len(schedules[config.schedule]); i++ {
-                prune()
-            }
-            waitTime := schedules[config.schedule][0]
-            log.Println("waiting for", waitTime)
-            time.Sleep(waitTime)
+    // run snapshot scheduler at the lowest interval rate
+    go periodic(func() {
+        log.Println("=> next snapshot")
+        snapshots, err := FindSnapshots(STATE_COMPLETE)
+        if err != nil {
+            log.Println(err)
         }
+        log.Println("found", len(snapshots), "snapshots in repository", config.repository)
+        lastGood := snapshots.lastGood()
+        if lastGood != nil {
+            log.Println("lastgood:", lastGood)
+        } else {
+            log.Println("lastgood: could not find suitable base snapshot")
+        }
+        CreateSnapshot(lastGood)
+        prune()
+        prune()
+        prune()
+        prune()
+        prune()
+    }, schedules[config.schedule][0])
+
+    go periodic(func() {
+        log.Println("=> purge")
+        snapshots, err := FindSnapshots(STATE_OBSOLETE)
+        if err != nil {
+            log.Println(err)
+        }
+        for _, s := range snapshots {
+            path := filepath.Join(config.repository, s.Name())
+            log.Println("purging", path)
+            os.RemoveAll(path)
+        }
+    }, time.Second*3)
+
+    time.Sleep(time.Hour * 100000)
 }
 
 func subcmdList() {
