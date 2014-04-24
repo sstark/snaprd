@@ -31,6 +31,7 @@ type Config struct {
     repository  string
     schedule    string
     verbose     bool
+    showAll     bool
 }
 
 func (c *Config) String() string {
@@ -102,6 +103,9 @@ func LoadConfig() *Config {
             flags.BoolVar(&(config.verbose),
                 "v", false,
                 "show more information")
+            flags.BoolVar(&(config.showAll),
+                "a", false,
+                "show all snapshots. Otherwise only complete snapshots are shown")
             flags.Parse(os.Args[2:])
             fmt.Println(config)
             return config

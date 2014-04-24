@@ -53,7 +53,13 @@ func subcmdRun() {
 }
 
 func subcmdList() {
-    snapshots, err := FindSnapshots(ANY, NONE)
+    var snapshots SnapshotList
+    var err error
+    if config.showAll {
+        snapshots, err = FindSnapshots(ANY, NONE)
+    } else {
+        snapshots, err = FindSnapshots(STATE_COMPLETE, NONE)
+    }
     if err != nil {
         log.Println(err)
     }
