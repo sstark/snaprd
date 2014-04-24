@@ -19,3 +19,5 @@
   This is okay, as long as the deletion will be more conservative
 - make purge() pick up STATE_INDELETION snapshots
 - redesign FindSnapshots() filter feature
+- fix redundant prunes
+- rework FindSnapshots() filtering
