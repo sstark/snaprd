@@ -79,9 +79,13 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where to store snapshots")
+            schedulesArr := []string{}
+            for sch := range schedules {
+                schedulesArr = append(schedulesArr, sch)
+            }
             flags.StringVar(&(config.schedule),
                 "schedule", "longterm",
-                "choose a schedule")
+                "one of " + strings.Join(schedulesArr, ","))
             flags.Parse(os.Args[2:])
             log.Println(subcmd, config)
             if _, ok := schedules[config.schedule]; ok == false {
