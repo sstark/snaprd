@@ -23,6 +23,7 @@ const (
 )
 
 const ANY SnapshotState = 0
+const NONE SnapshotState = ^ANY
 
 func (st SnapshotState) String() string {
     s := ""
@@ -134,6 +135,11 @@ func (s *Snapshot) transObsolete() {
     }
 }
 
+func (s *Snapshot) matchFilter(f SnapshotState) bool {
+    //log.Println("filter:", strconv.FormatInt(int64(s.state), 2), strconv.FormatInt(int64(f), 2), strconv.FormatBool(s.state | f == s.state))
+    return (s.state & f) == f
+}
+
 type SnapshotList []*Snapshot
 
 // find the last snapshot to use as a basis for the next one
@@ -199,7 +205,7 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
     return sl[i].startTime.Before(sl[j].startTime)
 }
 
-func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
+func FindSnapshots(include, exclude SnapshotState) (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
     if err != nil {
@@ -220,7 +226,7 @@ func FindSnapshots(filterState SnapshotState) (SnapshotList, error) {
         }
         sn := newSnapshot(stime, etime, state)
         //log.Println("filter:", strconv.FormatInt(int64(sn.state), 2), strconv.FormatInt(int64(filterState), 2), strconv.FormatBool(sn.state | filterState == sn.state))
-        if sn.state | filterState == sn.state {
+        if sn.matchFilter(include) && !sn.matchFilter(exclude) {
             snapshots = append(snapshots, sn)
         }
     }

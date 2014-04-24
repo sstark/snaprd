@@ -6,7 +6,7 @@ import (
 )
 
 func findSnapshotsInInterval(after, before time.Time) SnapshotList {
-    allSnapshots, err := FindSnapshots(STATE_COMPLETE)
+    allSnapshots, err := FindSnapshots(STATE_COMPLETE, STATE_OBSOLETE)
     if err != nil {
         log.Println(err)
     }
@@ -38,6 +38,8 @@ func prune() {
             if dist.Seconds() < intervals[i].Seconds() {
                 log.Printf("mark as obsolete: %s", iv[youngest].Name())
                 iv[youngest].transObsolete()
+                // prune as often as needed
+                prune()
             }
         }
     }

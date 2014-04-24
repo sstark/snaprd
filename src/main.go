@@ -24,7 +24,7 @@ func subcmdRun() {
     // run snapshot scheduler at the lowest interval rate
     go periodic(func() {
         log.Println("=> next snapshot")
-        snapshots, err := FindSnapshots(STATE_COMPLETE)
+        snapshots, err := FindSnapshots(STATE_COMPLETE, NONE)
         if err != nil {
             log.Println(err)
         }
@@ -37,15 +37,11 @@ func subcmdRun() {
         }
         CreateSnapshot(lastGood)
         prune()
-        prune()
-        prune()
-        prune()
-        prune()
     }, schedules[config.schedule][0])
 
     go periodic(func() {
         log.Println("=> purge")
-        snapshots, err := FindSnapshots(STATE_OBSOLETE)
+        snapshots, err := FindSnapshots(STATE_OBSOLETE, NONE)
         if err != nil {
             log.Println(err)
         }
@@ -62,7 +58,7 @@ func subcmdRun() {
 }
 
 func subcmdList() {
-    snapshots, err := FindSnapshots(ANY)
+    snapshots, err := FindSnapshots(ANY, NONE)
     if err != nil {
         log.Println(err)
     }
