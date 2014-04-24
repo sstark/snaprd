@@ -7,6 +7,7 @@
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
 - fix "latest" link after pruning
+- make "latest" symlink relative
 - how to deal with oldest snapshot?
   - special prune for highest interval:
     - by free block/inode space
@@ -18,6 +19,3 @@
 - when restarting snaprd after a while, it will obsolete many snapshots.
   This is okay, as long as the deletion will be more conservative
 - make purge() pick up STATE_INDELETION snapshots
-- redesign FindSnapshots() filter feature
-- fix redundant prunes
-- rework FindSnapshots() filtering
