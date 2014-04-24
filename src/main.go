@@ -5,7 +5,6 @@ import (
     "time"
     "fmt"
     "os"
-    "path/filepath"
     "os/signal"
     "syscall"
 )
@@ -23,15 +22,14 @@ func periodic(f func(), d time.Duration) {
 func subcmdRun() {
     // run snapshot scheduler at the lowest interval rate
     go periodic(func() {
-        log.Println("=> next snapshot")
         snapshots, err := FindSnapshots(STATE_COMPLETE, NONE)
         if err != nil {
             log.Println(err)
         }
-        log.Println("found", len(snapshots), "snapshots in repository", config.repository)
+        //log.Println("found", len(snapshots), "snapshots in repository", config.repository)
         lastGood := snapshots.lastGood()
         if lastGood != nil {
-            log.Println("lastgood:", lastGood)
+            //log.Println("lastgood:", lastGood)
         } else {
             log.Println("lastgood: could not find suitable base snapshot")
         }
@@ -40,15 +38,12 @@ func subcmdRun() {
     }, schedules[config.schedule][0])
 
     go periodic(func() {
-        log.Println("=> purge")
-        snapshots, err := FindSnapshots(STATE_OBSOLETE, NONE)
+        snapshots, err := FindSnapshots(STATE_OBSOLETE, STATE_PURGING)
         if err != nil {
             log.Println(err)
         }
         for _, s := range snapshots {
-            path := filepath.Join(config.repository, s.Name())
-            log.Println("purging", path)
-            os.RemoveAll(path)
+            s.purge()
         }
     }, time.Second*3)
 

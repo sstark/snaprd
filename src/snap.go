@@ -19,7 +19,7 @@ const (
     STATE_INCOMPLETE SnapshotState = 1 << iota
     STATE_COMPLETE
     STATE_OBSOLETE
-    STATE_INDELETION
+    STATE_PURGING
 )
 
 const ANY SnapshotState = 0
@@ -36,8 +36,8 @@ func (st SnapshotState) String() string {
     if st&STATE_OBSOLETE == STATE_OBSOLETE {
         s += ":Obsolete"
     }
-    if st&STATE_INDELETION == STATE_INDELETION {
-        s += ":Indeletion"
+    if st&STATE_PURGING == STATE_PURGING {
+        s += ":Purging"
     }
     return s
 }
@@ -72,6 +72,8 @@ func (s *Snapshot) Name() (n string) {
         return fmt.Sprintf("%d-%d-complete", stime, etime)
     case STATE_COMPLETE | STATE_OBSOLETE:
         return fmt.Sprintf("%d-%d-complete,obsolete", stime, etime)
+    case STATE_COMPLETE | STATE_OBSOLETE | STATE_PURGING:
+        return fmt.Sprintf("%d-%d-complete,obsolete,purging", stime, etime)
     }
     return fmt.Sprintf("%d-%d-unknown", stime, etime)
 }
@@ -101,7 +103,7 @@ func tryLink(target string) {
     if err != nil {
         log.Println(err)
     } else {
-        log.Println("symlink latest snapshot")
+        //log.Println("symlink latest snapshot")
     }
 }
 
@@ -133,6 +135,24 @@ func (s *Snapshot) transObsolete() {
     if err != nil {
         log.Fatal(err)
     }
+}
+
+func (s *Snapshot) transIndeletion() {
+    oldName := filepath.Join(config.repository, s.Name())
+    s.state = s.state | STATE_PURGING
+    newName := filepath.Join(config.repository, s.Name())
+    err := os.Rename(oldName, newName)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
+func (s *Snapshot) purge() {
+    s.transIndeletion()
+    path := filepath.Join(config.repository, s.Name())
+    log.Println("purging", s.Name())
+    os.RemoveAll(path)
+    log.Println("finished purging", s.Name())
 }
 
 func (s *Snapshot) matchFilter(f SnapshotState) bool {
@@ -182,8 +202,8 @@ func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
             state += STATE_INCOMPLETE
         case "obsolete":
             state += STATE_OBSOLETE
-        case "indeletion":
-            state += STATE_INDELETION
+        case "purgin":
+            state += STATE_PURGING
         }
     }
     // no state tags found
