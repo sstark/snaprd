@@ -1,12 +1,12 @@
 package main
 
 import (
-    "log"
-    "time"
     "fmt"
+    "log"
     "os"
     "os/signal"
     "syscall"
+    "time"
 )
 
 var config *Config
@@ -89,7 +89,9 @@ func main() {
         log.Fatal("no config, don't know what to do!")
     }
     switch subcmd {
-    case "run": subcmdRun()
-    case "list": subcmdList()
+    case "run":
+        subcmdRun()
+    case "list":
+        subcmdList()
     }
 }

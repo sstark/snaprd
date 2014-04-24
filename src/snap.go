@@ -1,16 +1,16 @@
 package main
 
 import (
+    "errors"
+    "fmt"
     "io/ioutil"
     "log"
     "os"
     "path/filepath"
-    "time"
+    "sort"
     "strconv"
     "strings"
-    "errors"
-    "fmt"
-    "sort"
+    "time"
 )
 
 type SnapshotState int
@@ -43,9 +43,9 @@ func (st SnapshotState) String() string {
 }
 
 type Snapshot struct {
-    startTime   time.Time
-    endTime     time.Time
-    state       SnapshotState
+    startTime time.Time
+    endTime   time.Time
+    state     SnapshotState
 }
 
 func newSnapshot(startTime, endTime time.Time, state SnapshotState) *Snapshot {

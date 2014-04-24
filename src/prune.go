@@ -32,8 +32,8 @@ func prune() {
         iv := findSnapshotsInInterval(t.Add(-intervals[i+1]), t)
         if len(iv) > 2 {
             // last in list is youngest
-            youngest := len(iv)-1
-            secondYoungest := youngest-1
+            youngest := len(iv) - 1
+            secondYoungest := youngest - 1
             dist := iv[youngest].startTime.Sub(iv[secondYoungest].startTime)
             if dist.Seconds() < intervals[i].Seconds() {
                 log.Printf("mark as obsolete: %s", iv[youngest].Name())

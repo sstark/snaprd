@@ -2,9 +2,9 @@ package main
 
 import (
     "flag"
-    "os"
-    "log"
     "fmt"
+    "log"
+    "os"
     "strings"
 )
 
@@ -25,13 +25,13 @@ func (o *Opts) Set(value string) error {
 
 // use own struct as "backing store" for parsed flags
 type Config struct {
-    rsyncPath   string
-    rsyncOpts   Opts
-    origin      string
-    repository  string
-    schedule    string
-    verbose     bool
-    showAll     bool
+    rsyncPath  string
+    rsyncOpts  Opts
+    origin     string
+    repository string
+    schedule   string
+    verbose    bool
+    showAll    bool
 }
 
 func (c *Config) String() string {
@@ -86,7 +86,7 @@ func LoadConfig() *Config {
             }
             flags.StringVar(&(config.schedule),
                 "schedule", "longterm",
-                "one of " + strings.Join(schedulesArr, ","))
+                "one of "+strings.Join(schedulesArr, ","))
             flags.Parse(os.Args[2:])
             log.Println(subcmd, config)
             if _, ok := schedules[config.schedule]; ok == false {

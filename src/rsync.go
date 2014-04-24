@@ -1,12 +1,12 @@
 package main
 
 import (
-    "os/exec"
-    "log"
     "bufio"
     "io"
-    "path/filepath"
+    "log"
     "os"
+    "os/exec"
+    "path/filepath"
 )
 
 func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
@@ -81,12 +81,12 @@ func CreateSnapshot(base *Snapshot) {
     cmd := createRsyncCommand(newSn, base)
     runRsyncCommand(cmd)
     /*
-    cmd := createRsyncCommand(newSn, base)
-    err := runRsyncCommand(cmd)
-    if err != nil {
-        c <- err
-        return
-    }
+       cmd := createRsyncCommand(newSn, base)
+       err := runRsyncCommand(cmd)
+       if err != nil {
+           c <- err
+           return
+       }
     */
     newSn.transComplete()
     log.Println("finished:", newSn.Name())
