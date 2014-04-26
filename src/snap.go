@@ -13,7 +13,7 @@ import (
     "time"
 )
 
-type SnapshotState int
+type SnapshotState uint
 
 const (
     STATE_INCOMPLETE SnapshotState = 1 << iota
@@ -22,24 +22,21 @@ const (
     STATE_PURGING
 )
 
-const ANY SnapshotState = 0
-const NONE SnapshotState = ^ANY
+const NONE SnapshotState = 0
+const ANY = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_PURGING
 
 func (st SnapshotState) String() string {
-    s := ""
-    if st&STATE_INCOMPLETE == STATE_INCOMPLETE {
-        s += ":Incomplete"
+    switch st {
+    case STATE_INCOMPLETE:
+        return "Incomplete"
+    case STATE_COMPLETE:
+        return "Complete"
+    case STATE_OBSOLETE:
+        return "Obsolete"
+    case STATE_PURGING:
+        return "Purging"
     }
-    if st&STATE_COMPLETE == STATE_COMPLETE {
-        s += ":Complete"
-    }
-    if st&STATE_OBSOLETE == STATE_OBSOLETE {
-        s += ":Obsolete"
-    }
-    if st&STATE_PURGING == STATE_PURGING {
-        s += ":Purging"
-    }
-    return s
+    return "Unknown"
 }
 
 type Snapshot struct {
@@ -59,7 +56,7 @@ func newIncompleteSnapshot() *Snapshot {
 func (s *Snapshot) String() string {
     stime := s.startTime.Unix()
     etime := s.endTime.Unix()
-    return fmt.Sprintf("%d-%d S%s", stime, etime, s.state.String())
+    return fmt.Sprintf("%d-%d %s", stime, etime, s.state.String())
 }
 
 func (s *Snapshot) Name() (n string) {
@@ -70,10 +67,10 @@ func (s *Snapshot) Name() (n string) {
         return fmt.Sprintf("%d-0-incomplete", stime)
     case STATE_COMPLETE:
         return fmt.Sprintf("%d-%d-complete", stime, etime)
-    case STATE_COMPLETE | STATE_OBSOLETE:
-        return fmt.Sprintf("%d-%d-complete,obsolete", stime, etime)
-    case STATE_COMPLETE | STATE_OBSOLETE | STATE_PURGING:
-        return fmt.Sprintf("%d-%d-complete,obsolete,purging", stime, etime)
+    case STATE_OBSOLETE:
+        return fmt.Sprintf("%d-%d-obsolete", stime, etime)
+    case STATE_PURGING:
+        return fmt.Sprintf("%d-%d-purging", stime, etime)
     }
     return fmt.Sprintf("%d-%d-unknown", stime, etime)
 }
@@ -129,7 +126,7 @@ func (s *Snapshot) transComplete() {
 
 func (s *Snapshot) transObsolete() {
     oldName := filepath.Join(config.repository, s.Name())
-    s.state = s.state | STATE_OBSOLETE
+    s.state = STATE_OBSOLETE
     newName := filepath.Join(config.repository, s.Name())
     err := os.Rename(oldName, newName)
     if err != nil {
@@ -137,9 +134,9 @@ func (s *Snapshot) transObsolete() {
     }
 }
 
-func (s *Snapshot) transIndeletion() {
+func (s *Snapshot) transPurging() {
     oldName := filepath.Join(config.repository, s.Name())
-    s.state = s.state | STATE_PURGING
+    s.state = STATE_PURGING
     newName := filepath.Join(config.repository, s.Name())
     err := os.Rename(oldName, newName)
     if err != nil {
@@ -148,7 +145,7 @@ func (s *Snapshot) transIndeletion() {
 }
 
 func (s *Snapshot) purge() {
-    s.transIndeletion()
+    s.transPurging()
     path := filepath.Join(config.repository, s.Name())
     log.Println("purging", s.Name())
     os.RemoveAll(path)
@@ -156,8 +153,9 @@ func (s *Snapshot) purge() {
 }
 
 func (s *Snapshot) matchFilter(f SnapshotState) bool {
-    //log.Println("filter:", strconv.FormatInt(int64(s.state), 2), strconv.FormatInt(int64(f), 2), strconv.FormatBool(s.state | f == s.state))
-    return (s.state & f) == f
+    //log.Println("filter:", strconv.FormatInt(int64(s.state), 2), strconv.FormatInt(int64(f), 2), strconv.FormatBool(s.state & f == s.state))
+    //log.Println(strconv.FormatInt(int64(ANY), 2))
+    return (s.state & f) == s.state
 }
 
 type SnapshotList []*Snapshot
@@ -193,20 +191,16 @@ func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
         return zero, zero, 0, err
     }
     var state SnapshotState = 0
-    stateInfo := strings.Split(sa[2], ",")
-    for _, si := range stateInfo {
-        switch si {
-        case "complete":
-            state += STATE_COMPLETE
-        case "incomplete":
-            state += STATE_INCOMPLETE
-        case "obsolete":
-            state += STATE_OBSOLETE
-        case "purgin":
-            state += STATE_PURGING
-        }
+    switch sa[2] {
+    case "complete":
+        state = STATE_COMPLETE
+    case "incomplete":
+        state = STATE_INCOMPLETE
+    case "obsolete":
+        state = STATE_OBSOLETE
+    case "purging":
+        state = STATE_PURGING
     }
-    // no state tags found
     if state == 0 {
         return time.Unix(stime, 0), time.Unix(etime, 0), state, errors.New("could not parse state: " + s)
     }
@@ -245,8 +239,7 @@ func FindSnapshots(include, exclude SnapshotState) (SnapshotList, error) {
             continue
         }
         sn := newSnapshot(stime, etime, state)
-        //log.Println("filter:", strconv.FormatInt(int64(sn.state), 2), strconv.FormatInt(int64(filterState), 2), strconv.FormatBool(sn.state | filterState == sn.state))
-        if sn.matchFilter(include) && !sn.matchFilter(exclude) {
+        if sn.matchFilter(include) && sn.matchFilter(^exclude) {
             snapshots = append(snapshots, sn)
         }
     }

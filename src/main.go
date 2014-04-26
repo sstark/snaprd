@@ -38,7 +38,7 @@ func subcmdRun() {
     }, schedules[config.schedule][0])
 
     go periodic(func() {
-        snapshots, err := FindSnapshots(STATE_OBSOLETE, STATE_PURGING)
+        snapshots, err := FindSnapshots(STATE_OBSOLETE + STATE_PURGING, STATE_COMPLETE)
         if err != nil {
             log.Println(err)
         }
@@ -74,9 +74,9 @@ func subcmdList() {
             }
         }
         if config.verbose {
-            fmt.Printf("* %s (%s, %s) S%s \"%s\"\n", stime, dur, dist, sn.state, sn.Name())
+            fmt.Printf("* %s (%s, %s) %s \"%s\"\n", stime, dur, dist, sn.state, sn.Name())
         } else {
-            fmt.Printf("* %s (%s, %s) S%s\n", stime, dur, dist, sn.state)
+            fmt.Printf("* %s (%s, %s) %s\n", stime, dur, dist, sn.state)
         }
     }
     os.Exit(0)
