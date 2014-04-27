@@ -80,13 +80,9 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where to store snapshots")
-            schedulesArr := []string{}
-            for sch := range schedules {
-                schedulesArr = append(schedulesArr, sch)
-            }
             flags.StringVar(&(config.schedule),
                 "schedule", "longterm",
-                "one of "+strings.Join(schedulesArr, ","))
+                "one of " + schedules.String())
             flags.Parse(os.Args[2:])
             log.Println(subcmd, config)
             if _, ok := schedules[config.schedule]; ok == false {
@@ -106,6 +102,9 @@ func LoadConfig() *Config {
             flags.BoolVar(&(config.showAll),
                 "a", false,
                 "show all snapshots. Otherwise only complete snapshots are shown")
+            flags.StringVar(&(config.schedule),
+                "schedule", "longterm",
+                "one of " + schedules.String())
             flags.Parse(os.Args[2:])
             fmt.Println(config)
             return config
