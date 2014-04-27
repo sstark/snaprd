@@ -13,6 +13,10 @@ func prune() {
         log.Println(err)
         return
     }
+    if len(snapshots) < 2 {
+        log.Println("less than 2 snapshots found, not pruning")
+        return
+    }
     // interval 0 does not need pruning, start with 1
     for i := 1; i < len(intervals)-1; i++ {
         iv := snapshots.interval(intervals, i).state(STATE_COMPLETE, STATE_OBSOLETE)
