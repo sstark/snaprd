@@ -2,34 +2,20 @@ package main
 
 import (
     "log"
-    "time"
 )
-
-func findSnapshotsInInterval(after, before time.Time) SnapshotList {
-    allSnapshots, err := FindSnapshots(STATE_COMPLETE, STATE_OBSOLETE)
-    if err != nil {
-        log.Println(err)
-    }
-    snapshotInterval := make(SnapshotList, 0, 256)
-    for _, sn := range allSnapshots {
-        if sn.startTime.After(after) && sn.startTime.Before(before) {
-            snapshotInterval = append(snapshotInterval, sn)
-        }
-    }
-    return snapshotInterval
-}
 
 // TODO should add more checks:
 // - don't delete hardlink base
 func prune() {
     intervals := schedules[config.schedule]
+    snapshots, err := FindSnapshots()
+    if err != nil {
+        log.Println(err)
+        return
+    }
     // interval 0 does not need pruning, start with 1
     for i := 1; i < len(intervals)-1; i++ {
-        t := time.Now()
-        for j := 0; j <= i; j++ {
-            t = t.Add(-intervals[j])
-        }
-        iv := findSnapshotsInInterval(t.Add(-intervals[i+1]), t)
+        iv := snapshots.interval(intervals, i).state(STATE_COMPLETE, STATE_OBSOLETE)
         if len(iv) > 2 {
             // last in list is youngest
             youngest := len(iv) - 1

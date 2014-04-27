@@ -218,7 +218,7 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
     return sl[i].startTime.Before(sl[j].startTime)
 }
 
-func FindSnapshots(include, exclude SnapshotState) (SnapshotList, error) {
+func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
     if err != nil {
@@ -238,10 +238,36 @@ func FindSnapshots(include, exclude SnapshotState) (SnapshotList, error) {
             continue
         }
         sn := newSnapshot(stime, etime, state)
-        if sn.matchFilter(include) && sn.matchFilter(^exclude) {
-            snapshots = append(snapshots, sn)
-        }
+        snapshots = append(snapshots, sn)
     }
     sort.Sort(SnapshotListByStartTime(snapshots))
     return snapshots, nil
+}
+
+func (sl SnapshotList) period(after, before time.Time) SnapshotList {
+    slNew := make(SnapshotList, 0, len(sl))
+    for _, sn := range sl {
+        if sn.startTime.After(after) && sn.startTime.Before(before) {
+            slNew = append(slNew, sn)
+        }
+    }
+    return slNew
+}
+
+func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
+    t := time.Now()
+    for j := 0; j <= i; j++ {
+        t = t.Add(-intervals[j])
+    }
+    return sl.period(t.Add(-intervals[i+1]), t)
+}
+
+func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
+    slNew := make(SnapshotList, 0, len(sl))
+    for _, sn := range sl {
+        if sn.matchFilter(include) && sn.matchFilter(^exclude) {
+            slNew = append(slNew, sn)
+        }
+    }
+    return slNew
 }
