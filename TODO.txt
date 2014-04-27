@@ -11,8 +11,6 @@
 - how to deal with oldest snapshot?
   - special prune for highest interval:
     - by free block/inode space
-    - option "-maxKeep":
-        how many snapshot to keep in highest interval
     - option "-keepOldest":
         wether to keep the oldest snapshot (thus being able to go back to the beginning)
         or not, saving disk space.

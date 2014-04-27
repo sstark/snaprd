@@ -20,17 +20,28 @@ func prune() {
             return
         }
         iv := snapshots.interval(intervals, i).state(STATE_COMPLETE, STATE_OBSOLETE)
+        pruneAgain := 0
         if len(iv) > 2 {
-            // last in list is youngest
-            youngest := len(iv) - 1
-            secondYoungest := youngest - 1
-            dist := iv[youngest].startTime.Sub(iv[secondYoungest].startTime)
-            if dist.Seconds() < intervals[i].Seconds() {
-                log.Printf("mark as obsolete: %s", iv[youngest].Name())
-                iv[youngest].transObsolete()
-                // prune as often as needed
-                prune()
+            if i == len(intervals)-2 {
+                // highest interval pruning
+                if (len(iv) > config.maxKeep) && (config.maxKeep != 0) {
+                    log.Printf("%d snapshots in oldest interval", len(iv))
+                    log.Printf("mark oldest as obsolete: %s", iv[0])
+                    iv[0].transObsolete()
+                    pruneAgain += 1
+                }
+            } else {
+                // last in list is youngest
+                youngest := len(iv) - 1
+                secondYoungest := youngest - 1
+                dist := iv[youngest].startTime.Sub(iv[secondYoungest].startTime)
+                if (dist.Seconds() < intervals[i].Seconds()) {
+                    log.Printf("mark as obsolete: %s", iv[youngest].Name())
+                    iv[youngest].transObsolete()
+                    pruneAgain += 1
+                }
             }
+            if pruneAgain > 0 { prune() }
         }
     }
 }
