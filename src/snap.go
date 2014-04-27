@@ -15,15 +15,14 @@ import (
 
 type SnapshotState uint
 
+const NONE SnapshotState = 0
 const (
     STATE_INCOMPLETE SnapshotState = 1 << iota
     STATE_COMPLETE
     STATE_OBSOLETE
     STATE_PURGING
+    ANY = (1 << iota) - 1
 )
-
-const NONE SnapshotState = 0
-const ANY = STATE_INCOMPLETE + STATE_COMPLETE + STATE_OBSOLETE + STATE_PURGING
 
 func (st SnapshotState) String() string {
     switch st {

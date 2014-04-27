@@ -18,11 +18,3 @@
         or not, saving disk space.
 - when restarting snaprd after a while, it will obsolete many snapshots.
   This is okay, as long as the deletion will be more conservative
-- make purge() pick up STATE_INDELETION snapshots
-
-states:
-
--complete
--incomplete
--obsolete
--purging
