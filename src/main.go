@@ -26,7 +26,6 @@ func subcmdRun() {
         if err != nil {
             log.Println(err)
         }
-        //log.Println("found", len(snapshots), "snapshots in repository", config.repository)
         lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
         if lastGood != nil {
             //log.Println("lastgood:", lastGood)

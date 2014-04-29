@@ -58,7 +58,7 @@ func (s *Snapshot) String() string {
     return fmt.Sprintf("%d-%d %s", stime, etime, s.state.String())
 }
 
-func (s *Snapshot) Name() (n string) {
+func (s *Snapshot) Name() string {
     stime := s.startTime.Unix()
     etime := s.endTime.Unix()
     switch s.state {
@@ -72,6 +72,10 @@ func (s *Snapshot) Name() (n string) {
         return fmt.Sprintf("%d-%d-purging", stime, etime)
     }
     return fmt.Sprintf("%d-%d-unknown", stime, etime)
+}
+
+func (s *Snapshot) FullName() string {
+    return filepath.Join(config.repository, DATA_SUBDIR, s.Name())
 }
 
 // Mark the latest snapshot for easy access.
@@ -104,7 +108,7 @@ func tryLink(target string) {
 }
 
 func (s *Snapshot) transComplete() {
-    oldName := filepath.Join(config.repository, s.Name())
+    oldName := s.FullName()
     etime := time.Now()
     if etime.Before(s.startTime) {
         log.Fatal("endTime before startTime!")
@@ -115,7 +119,7 @@ func (s *Snapshot) transComplete() {
     }
     s.endTime = etime
     s.state = STATE_COMPLETE
-    newName := filepath.Join(config.repository, s.Name())
+    newName := s.FullName()
     err := os.Rename(oldName, newName)
     if err != nil {
         log.Fatal(err)
@@ -124,9 +128,9 @@ func (s *Snapshot) transComplete() {
 }
 
 func (s *Snapshot) transObsolete() {
-    oldName := filepath.Join(config.repository, s.Name())
+    oldName := s.FullName()
     s.state = STATE_OBSOLETE
-    newName := filepath.Join(config.repository, s.Name())
+    newName := s.FullName()
     err := os.Rename(oldName, newName)
     if err != nil {
         log.Fatal(err)
@@ -134,9 +138,9 @@ func (s *Snapshot) transObsolete() {
 }
 
 func (s *Snapshot) transPurging() {
-    oldName := filepath.Join(config.repository, s.Name())
+    oldName := s.FullName()
     s.state = STATE_PURGING
-    newName := filepath.Join(config.repository, s.Name())
+    newName := s.FullName()
     err := os.Rename(oldName, newName)
     if err != nil {
         log.Fatal(err)
@@ -145,7 +149,7 @@ func (s *Snapshot) transPurging() {
 
 func (s *Snapshot) purge() {
     s.transPurging()
-    path := filepath.Join(config.repository, s.Name())
+    path := s.FullName()
     log.Println("purging", s.Name())
     os.RemoveAll(path)
     log.Println("finished purging", s.Name())
@@ -220,9 +224,10 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
 
 func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
-    files, err := ioutil.ReadDir(filepath.Join(config.repository, ""))
+    dataPath := filepath.Join(config.repository, DATA_SUBDIR, "")
+    files, err := ioutil.ReadDir(dataPath)
     if err != nil {
-        return nil, errors.New("repository " + config.repository + " does not exist")
+        return nil, errors.New("repository " + dataPath + " does not exist")
     }
     for _, f := range files {
         if !f.IsDir() {

@@ -8,7 +8,10 @@ import (
     "strings"
 )
 
-const myName = "snaprd"
+const (
+    myName = "snaprd"
+    DATA_SUBDIR = ".data"
+)
 
 type Opts []string
 
