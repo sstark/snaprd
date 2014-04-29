@@ -33,6 +33,7 @@ type Config struct {
     verbose    bool
     showAll    bool
     maxKeep    int
+    noPurge      bool
 }
 
 func (c *Config) String() string {
@@ -87,6 +88,9 @@ func LoadConfig() *Config {
             flags.IntVar(&(config.maxKeep),
                 "maxKeep", 0,
                 "how many snapshots to keep in highest (oldest) interval. Use 0 to keep all")
+            flags.BoolVar(&(config.noPurge),
+                "noPurge", false,
+                "if set, obsolete snapshots will not be deleted")
             flags.Parse(os.Args[2:])
             log.Println(subcmd, config)
             if _, ok := schedules[config.schedule]; ok == false {

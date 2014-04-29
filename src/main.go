@@ -37,15 +37,17 @@ func subcmdRun() {
         prune()
     }, schedules[config.schedule][0])
 
-    go periodic(func() {
-        snapshots, err := FindSnapshots()
-        if err != nil {
-            log.Println(err)
-        }
-        for _, s := range snapshots.state(STATE_OBSOLETE + STATE_PURGING, STATE_COMPLETE) {
-            s.purge()
-        }
-    }, time.Second*3)
+    if !config.noPurge {
+        go periodic(func() {
+            snapshots, err := FindSnapshots()
+            if err != nil {
+                log.Println(err)
+            }
+            for _, s := range snapshots.state(STATE_OBSOLETE + STATE_PURGING, STATE_COMPLETE) {
+                s.purge()
+            }
+        }, time.Second*3)
+    }
 
     c := make(chan os.Signal, 1)
     signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
