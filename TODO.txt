@@ -6,8 +6,6 @@
 - make sure only a single instance is running at a time
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
-- fix "latest" link after pruning
-- make "latest" symlink relative
 - how to deal with oldest snapshot?
   - special prune for highest interval:
     - by free block/inode space

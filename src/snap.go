@@ -119,12 +119,11 @@ func (s *Snapshot) transComplete() {
     }
     s.endTime = etime
     s.state = STATE_COMPLETE
-    newName := s.FullName()
-    err := os.Rename(oldName, newName)
+    err := os.Rename(oldName, s.FullName())
     if err != nil {
         log.Fatal(err)
     }
-    tryLink(newName)
+    tryLink(filepath.Join(DATA_SUBDIR, s.Name()))
 }
 
 func (s *Snapshot) transObsolete() {
