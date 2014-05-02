@@ -12,6 +12,16 @@
     - option "-keepOldest":
         wether to keep the oldest snapshot (thus being able to go back to the beginning)
         or not, saving disk space.
-- when restarting snaprd after a while, it will obsolete many snapshots.
-  This is okay, as long as the deletion will be more conservative
+- what happens when restarting snaprd after a while:
+  - it will obsolete many snapshots. This is okay, as long as the deletion will be more conservative
+  - waiting time for next snapshot should be adjusted accordingly.
+     - Maybe use a waiting_time channel?
 - start first snapshot immediately, if that makes sense
+- think about if it is useful to add the full origin path name to the repository subdirs
+- defined exit status of snaprd
+- forward signals to children as appropriate
+
+bugs:
+
+- *Snapshot.period does not work as expected: it does not return all snapshots that it should return,
+  at least not in the case "there is only one snapshot"
