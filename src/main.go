@@ -14,8 +14,8 @@ var config *Config
 func periodic(f func(), d time.Duration) {
     ticker := time.NewTicker(d)
     for {
-        <-ticker.C
         f()
+        <-ticker.C
     }
 }
 
