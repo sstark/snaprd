@@ -27,6 +27,11 @@ func (il intervalList) offset(i int) time.Duration {
     }
 }
 
+// returns how many snapshots are the goal in the given interval
+func (il intervalList) goal(i int) int {
+    return int(il[i+1]/il[i])
+}
+
 type scheduleList map[string]intervalList
 
 func (schl *scheduleList) String() string {

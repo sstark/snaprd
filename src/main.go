@@ -75,6 +75,11 @@ func subcmdList() {
         }
         snapshots := snapshots.interval(intervals, n)
         Debugf("snapshots in interval %d: %s", n, snapshots)
+        if n < len(intervals)-2 {
+            fmt.Printf("### from %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
+        } else {
+            fmt.Printf("### from past, %d\n", len(snapshots))
+        }
         for i, sn := range snapshots {
             stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
             var dur, dist time.Duration
