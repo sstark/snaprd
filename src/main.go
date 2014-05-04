@@ -67,19 +67,25 @@ func subcmdList() {
         log.Println(err)
     }
     for n := len(intervals)-2; n >= 0; n-- {
+        Debugf("listing interval %d", n)
         if config.showAll {
             snapshots = snapshots.state(ANY, NONE)
         } else {
             snapshots = snapshots.state(STATE_COMPLETE, NONE)
         }
-        for _, sn := range snapshots.interval(intervals, n) {
+        snapshots := snapshots.interval(intervals, n)
+        Debugf("snapshots in interval %d: %s", n, snapshots)
+        for i, sn := range snapshots {
             stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
-            var dur time.Duration = 0
+            var dur, dist time.Duration
+            if i < len(snapshots)-1 {
+                dist = snapshots[i+1].startTime.Sub(sn.startTime)
+            }
             if sn.endTime.After(sn.startTime) {
                 dur = sn.endTime.Sub(sn.startTime)
             }
             if config.verbose {
-                fmt.Printf("%d %s (%s, %s, %s) \"%s\"\n", n, stime, dur, intervals[n], sn.state, sn.Name())
+                fmt.Printf("%d %s (%s, %s/%s, %s) \"%s\"\n", n, stime, dur, intervals[n], dist, sn.state, sn.Name())
             } else {
                 fmt.Printf("%s (%s, %s)\n", stime, dur, intervals[n])
             }
