@@ -65,16 +65,16 @@ func (c *Config) WriteCache() error {
 var subcmd string = ""
 
 func usage() {
-    fmt.Printf(`usage: %s <command> <options>
+    fmt.Printf(`usage: %[1]s <command> <options>
 Commands:
     run     Periodically create snapshots
     list    List snapshots
     help    Show usage instructions
 Use <command> -h to show possible options for <command>.
 Examples:
-    %s run -origin=fileserver:/export/projects -repository=/snapshots/projects
-    %s list -repository=/snapshots/projects
-`, myName, myName, myName)
+    %[1]s run -origin=fileserver:/export/projects -repository=/snapshots/projects
+    %[1]s list -repository=/snapshots/projects
+`, myName)
 }
 
 func LoadConfig() *Config {
