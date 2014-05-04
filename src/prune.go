@@ -25,7 +25,7 @@ func prune() {
             if i == len(intervals)-2 {
                 // highest interval pruning
                 if (len(iv) > config.maxKeep) && (config.maxKeep != 0) {
-                    log.Printf("%d snapshots in oldest interval", len(iv))
+                    Debugf("%d snapshots in oldest interval", len(iv))
                     log.Printf("mark oldest as obsolete: %s", iv[0])
                     iv[0].transObsolete()
                     pruneAgain += 1

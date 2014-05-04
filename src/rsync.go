@@ -80,15 +80,10 @@ func CreateSnapshot(base *Snapshot) {
     }
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
-    runRsyncCommand(cmd)
-    /*
-       cmd := createRsyncCommand(newSn, base)
-       err := runRsyncCommand(cmd)
-       if err != nil {
-           c <- err
-           return
-       }
-    */
+    err := runRsyncCommand(cmd)
+    if err != nil {
+        log.Fatalln("rsync error:", err)
+    }
     newSn.transComplete()
     log.Println("finished:", newSn.Name())
 }

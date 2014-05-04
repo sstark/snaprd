@@ -36,7 +36,7 @@ type Config struct {
     verbose    bool
     showAll    bool
     maxKeep    int
-    noPurge      bool
+    noPurge    bool
 }
 
 func (c *Config) String() string {

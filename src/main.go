@@ -11,6 +11,12 @@ import (
 
 var config *Config
 
+func Debugf(format string, args ...interface{}) {
+    if os.Getenv("SNAPRD_DEBUG") == "1" {
+        log.Printf("<DEBUG> "+format, args...)
+    }
+}
+
 func periodic(f func(), d time.Duration) {
     ticker := time.NewTicker(d)
     for {
@@ -29,7 +35,7 @@ func subcmdRun() {
         }
         lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
         if lastGood != nil {
-            //log.Println("lastgood:", lastGood)
+            Debugf("lastgood: %s\n", lastGood.String())
         } else {
             log.Println("lastgood: could not find suitable base snapshot")
         }
