@@ -248,6 +248,7 @@ func FindSnapshots() (SnapshotList, error) {
     return snapshots, nil
 }
 
+// return a new list of snapshots that fall into the given time period
 func (sl SnapshotList) period(after, before time.Time) SnapshotList {
     slNew := make(SnapshotList, 0, len(sl))
     for _, sn := range sl {
@@ -258,12 +259,11 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
     return slNew
 }
 
+// return a list of snapshots within the given interval
 func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
     t := time.Now()
-    for j := 0; j <= i; j++ {
-        t = t.Add(-intervals[j])
-    }
-    return sl.period(t.Add(-intervals[i+1]), t)
+    return sl.period(t.Add(-intervals.offset(i+1)),
+                     t.Add(-intervals.offset(i  )))
 }
 
 func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {

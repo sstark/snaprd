@@ -17,6 +17,16 @@ const (
 )
 
 type intervalList []time.Duration
+
+// returns how long ago the given interval started
+func (il intervalList) offset(i int) time.Duration {
+    if i == 0 {
+        return 0
+    } else {
+        return il[i] + il.offset(i-1)
+    }
+}
+
 type scheduleList map[string]intervalList
 
 func (schl *scheduleList) String() string {

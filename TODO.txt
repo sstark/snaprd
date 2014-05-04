@@ -20,8 +20,14 @@
 - think about if it is useful to add the full origin path name to the repository subdirs
 - defined exit status of snaprd
 - forward signals to children as appropriate
+- log own pid
+- regularly log memory stats
 
 bugs:
 
 - *Snapshot.period does not work as expected: it does not return all snapshots that it should return,
   at least not in the case "there is only one snapshot"
+
+- SIGBUS error!?
+
+- handle errors in RemoveAll (no write permission, what to do?)
