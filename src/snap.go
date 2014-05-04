@@ -256,14 +256,17 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
             slNew = append(slNew, sn)
         }
     }
+    Debugf("period(): %s", slNew)
     return slNew
 }
 
 // return a list of snapshots within the given interval
 func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
     t := time.Now()
-    return sl.period(t.Add(-intervals.offset(i+1)),
-                     t.Add(-intervals.offset(i  )))
+    from := t.Add(-intervals.offset(i+1))
+    to := t.Add(-intervals.offset(i))
+    Debugf("interval from: %s, to: %s", from, to)
+    return sl.period(from, to)
 }
 
 func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
