@@ -7,7 +7,7 @@ import (
 // TODO should add more checks:
 // - don't delete hardlink base
 func prune() {
-    intervals := schedules[config.schedule]
+    intervals := schedules[config.Schedule]
     // interval 0 does not need pruning, start with 1
     for i := 1; i < len(intervals)-1; i++ {
         snapshots, err := FindSnapshots()
@@ -24,7 +24,7 @@ func prune() {
         if len(iv) > 2 {
             if i == len(intervals)-2 {
                 // highest interval pruning
-                if (len(iv) > config.maxKeep) && (config.maxKeep != 0) {
+                if (len(iv) > config.MaxKeep) && (config.MaxKeep != 0) {
                     Debugf("%d snapshots in oldest interval", len(iv))
                     log.Printf("mark oldest as obsolete: %s", iv[0])
                     iv[0].transObsolete()

@@ -41,9 +41,9 @@ func subcmdRun() {
         }
         CreateSnapshot(lastGood)
         prune()
-    }, schedules[config.schedule][0])
+    }, schedules[config.Schedule][0])
 
-    if !config.noPurge {
+    if !config.NoPurge {
         go periodic(func() {
             snapshots, err := FindSnapshots()
             if err != nil {
@@ -61,14 +61,14 @@ func subcmdRun() {
 }
 
 func subcmdList() {
-    intervals := schedules[config.schedule]
+    intervals := schedules[config.Schedule]
     snapshots, err := FindSnapshots()
     if err != nil {
         log.Println(err)
     }
     for n := len(intervals)-2; n >= 0; n-- {
         Debugf("listing interval %d", n)
-        if config.showAll {
+        if config.ShowAll {
             snapshots = snapshots.state(ANY, NONE)
         } else {
             snapshots = snapshots.state(STATE_COMPLETE, NONE)
@@ -89,7 +89,7 @@ func subcmdList() {
             if sn.endTime.After(sn.startTime) {
                 dur = sn.endTime.Sub(sn.startTime)
             }
-            if config.verbose {
+            if config.Verbose {
                 fmt.Printf("%d %s (%s, %s/%s, %s) \"%s\"\n", n, stime, dur, intervals[n], dist, sn.state, sn.Name())
             } else {
                 fmt.Printf("%s (%s, %s)\n", stime, dur, intervals[n])
