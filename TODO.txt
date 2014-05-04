@@ -20,7 +20,6 @@
 - think about if it is useful to add the full origin path name to the repository subdirs
 - defined exit status of snaprd
 - forward signals to children as appropriate
-- log own pid
 - regularly log memory stats
 
 bugs:

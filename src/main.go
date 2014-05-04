@@ -20,6 +20,7 @@ func periodic(f func(), d time.Duration) {
 }
 
 func subcmdRun() {
+    log.Printf("%s started with pid %d\n", myName, os.Getpid())
     // run snapshot scheduler at the lowest interval rate
     go periodic(func() {
         snapshots, err := FindSnapshots()
