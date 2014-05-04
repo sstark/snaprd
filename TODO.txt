@@ -25,6 +25,7 @@
   - try to load json file from repository
   - if found, set config from it
   - then overwrite options from command line parameters
+    - deal with chicken-egg repository parameter
   - then write out config struct to the file again
 
 bugs:

@@ -6,6 +6,9 @@ import (
     "log"
     "os"
     "strings"
+    "encoding/json"
+    "path/filepath"
+    "io/ioutil"
 )
 
 const (
@@ -46,6 +49,18 @@ func (c *Config) String() string {
         return fmt.Sprintf("Repository: %s", c.Repository)
     }
 }
+
+func (c *Config) WriteCache() error {
+    cacheFile := filepath.Join(config.Repository, "."+myName+".settings")
+    jsonConfig, err := json.MarshalIndent(config, "", "  ")
+    if err != nil {
+        log.Println("could not write config:", err)
+        return err
+    }
+    err = ioutil.WriteFile(cacheFile, jsonConfig, 0644)
+    return err
+}
+
 
 var subcmd string = ""
 

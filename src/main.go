@@ -107,6 +107,7 @@ func main() {
     }
     switch subcmd {
     case "run":
+        config.WriteCache()
         subcmdRun()
     case "list":
         subcmdList()
