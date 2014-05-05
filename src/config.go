@@ -69,6 +69,9 @@ func (c *Config) ReadCache() error {
         c.RsyncPath = t.RsyncPath
         c.RsyncOpts = t.RsyncOpts
         c.Origin    = t.Origin
+        if _, ok := schedules[t.Schedule]; ok == false {
+            log.Fatalln("no such schedule:", t.Schedule)
+        }
         c.Schedule  = t.Schedule
         c.MaxKeep   = t.MaxKeep
         c.NoPurge   = t.NoPurge
