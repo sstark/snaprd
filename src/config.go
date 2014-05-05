@@ -42,17 +42,9 @@ type Config struct {
     NoPurge    bool
 }
 
-func (c *Config) String() string {
-    if c.Origin != "" {
-        return fmt.Sprintf("Repository: %s, Origin: %s", c.Repository, c.Origin)
-    } else {
-        return fmt.Sprintf("Repository: %s", c.Repository)
-    }
-}
-
 func (c *Config) WriteCache() error {
     cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
-    Debugf("trying to write cache settings to %s", cacheFile)
+    Debugf("trying to write cached settings to %s", cacheFile)
     jsonConfig, err := json.MarshalIndent(c, "", "  ")
     if err != nil {
         log.Println("could not write config:", err)
@@ -65,7 +57,7 @@ func (c *Config) WriteCache() error {
 func (c *Config) ReadCache() error {
     t := new(Config)
     cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
-    Debugf("trying to read cache settings from %s", cacheFile)
+    Debugf("trying to read cached settings from %s", cacheFile)
     b, err := ioutil.ReadFile(filepath.Join(c.Repository, "."+myName+".settings"))
     if err != nil {
         return err
@@ -132,7 +124,6 @@ func LoadConfig() *Config {
                 "noPurge", false,
                 "if set, obsolete snapshots will not be deleted")
             flags.Parse(os.Args[2:])
-            log.Println(subcmd, config)
             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
             }
@@ -158,7 +149,6 @@ func LoadConfig() *Config {
                 "schedule", "longterm",
                 "one of " + schedules.String())
             flags.Parse(os.Args[2:])
-            fmt.Println(config)
             err := config.ReadCache()
             if err != nil {
                 log.Println("error reading cached settings (using defaults):", err)

@@ -26,7 +26,6 @@ func periodic(f func(), d time.Duration) {
 }
 
 func subcmdRun() {
-    log.Printf("%s started with pid %d\n", myName, os.Getpid())
     // run snapshot scheduler at the lowest interval rate
     go periodic(func() {
         snapshots, err := FindSnapshots()
@@ -107,8 +106,11 @@ func main() {
     }
     switch subcmd {
     case "run":
+        log.Printf("%s started with pid %d\n", myName, os.Getpid())
+        log.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.Repository, config.Origin, config.Schedule)
         subcmdRun()
     case "list":
+        fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.Repository, config.Origin, config.Schedule)
         subcmdList()
     }
 }
