@@ -26,6 +26,10 @@
 - forward signals to children as appropriate
 - regularly log memory stats
 - deal with negative time shifts in transComplete()
+- fix race condition between goroutines:
+  - runner and purger both use FindSnapshots(). This should be done better
+  - maybe a finder goroutine?
+  - is it possible or needed at all?
 
 bugs:
 
