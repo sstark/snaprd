@@ -34,16 +34,16 @@ type Config struct {
     RsyncPath  string
     RsyncOpts  Opts
     Origin     string
-    Repository string
+    repository string
     Schedule   string
-    Verbose    bool
-    ShowAll    bool
+    verbose    bool
+    showAll    bool
     MaxKeep    int
     NoPurge    bool
 }
 
 func (c *Config) WriteCache() error {
-    cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
+    cacheFile := filepath.Join(c.repository, "."+myName+".settings")
     Debugf("trying to write cached settings to %s", cacheFile)
     jsonConfig, err := json.MarshalIndent(c, "", "  ")
     if err != nil {
@@ -56,9 +56,9 @@ func (c *Config) WriteCache() error {
 
 func (c *Config) ReadCache() error {
     t := new(Config)
-    cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
+    cacheFile := filepath.Join(c.repository, "."+myName+".settings")
     Debugf("trying to read cached settings from %s", cacheFile)
-    b, err := ioutil.ReadFile(filepath.Join(c.Repository, "."+myName+".settings"))
+    b, err := ioutil.ReadFile(filepath.Join(c.repository, "."+myName+".settings"))
     if err != nil {
         return err
     } else {
@@ -111,7 +111,7 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.Origin),
                 "origin", "/tmp/snaprd_test/",
                 "data source")
-            flags.StringVar(&(config.Repository),
+            flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where to store snapshots")
             flags.StringVar(&(config.Schedule),
@@ -136,13 +136,13 @@ func LoadConfig() *Config {
     case "list":
         {
             flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
-            flags.StringVar(&(config.Repository),
+            flags.StringVar(&(config.repository),
                 "repository", "/tmp/snaprd_dest",
                 "where snapshots are located")
-            flags.BoolVar(&(config.Verbose),
+            flags.BoolVar(&(config.verbose),
                 "v", false,
                 "show more information")
-            flags.BoolVar(&(config.ShowAll),
+            flags.BoolVar(&(config.showAll),
                 "a", false,
                 "show all snapshots. Otherwise only complete snapshots are shown")
             flags.StringVar(&(config.Schedule),

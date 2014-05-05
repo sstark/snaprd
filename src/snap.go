@@ -75,14 +75,14 @@ func (s *Snapshot) Name() string {
 }
 
 func (s *Snapshot) FullName() string {
-    return filepath.Join(config.Repository, DATA_SUBDIR, s.Name())
+    return filepath.Join(config.repository, DATA_SUBDIR, s.Name())
 }
 
 // Mark the latest snapshot for easy access.
 // Do not fail if not possible since it is more important
 // to continue creating new snapshots.
 func tryLink(target string) {
-    linkName := filepath.Join(config.Repository, "latest")
+    linkName := filepath.Join(config.repository, "latest")
     fi, err := os.Lstat(linkName)
     if err != nil {
         // link does not exist or can not be read
@@ -223,7 +223,7 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
 
 func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
-    dataPath := filepath.Join(config.Repository, DATA_SUBDIR, "")
+    dataPath := filepath.Join(config.repository, DATA_SUBDIR, "")
     files, err := ioutil.ReadDir(dataPath)
     if err != nil {
         return nil, errors.New("Repository " + dataPath + " does not exist")

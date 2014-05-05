@@ -67,7 +67,7 @@ func subcmdList() {
     }
     for n := len(intervals)-2; n >= 0; n-- {
         Debugf("listing interval %d", n)
-        if config.ShowAll {
+        if config.showAll {
             snapshots = snapshots.state(ANY, NONE)
         } else {
             snapshots = snapshots.state(STATE_COMPLETE, NONE)
@@ -88,7 +88,7 @@ func subcmdList() {
             if sn.endTime.After(sn.startTime) {
                 dur = sn.endTime.Sub(sn.startTime)
             }
-            if config.Verbose {
+            if config.verbose {
                 fmt.Printf("%d %s (%s, %s/%s, %s) \"%s\"\n", n, stime, dur, intervals[n], dist, sn.state, sn.Name())
             } else {
                 fmt.Printf("%s (%s, %s)\n", stime, dur, intervals[n])
@@ -107,10 +107,10 @@ func main() {
     switch subcmd {
     case "run":
         log.Printf("%s started with pid %d\n", myName, os.Getpid())
-        log.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.Repository, config.Origin, config.Schedule)
+        log.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdRun()
     case "list":
-        fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.Repository, config.Origin, config.Schedule)
+        fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdList()
     }
 }
