@@ -49,5 +49,5 @@ var schedules = scheduleList {
     "longterm":  {hour * 6, day, week, month, future},
     "shortterm": {minute * 10, hour * 2, day, week, month, future},
     "testing":   {second * 5, second * 20, second * 140, second * 280, future},
-    "testing2":  {second * 5, second * 20, second * 140, second * 280},
+    "testing2":  {second * 5, second * 20, second * 40, second * 80, future},
 }
