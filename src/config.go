@@ -51,8 +51,9 @@ func (c *Config) String() string {
 }
 
 func (c *Config) WriteCache() error {
-    cacheFile := filepath.Join(config.Repository, "."+myName+".settings")
-    jsonConfig, err := json.MarshalIndent(config, "", "  ")
+    cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
+    Debugf("trying to write cache settings to %s", cacheFile)
+    jsonConfig, err := json.MarshalIndent(c, "", "  ")
     if err != nil {
         log.Println("could not write config:", err)
         return err
@@ -63,6 +64,8 @@ func (c *Config) WriteCache() error {
 
 func (c *Config) ReadCache() error {
     t := new(Config)
+    cacheFile := filepath.Join(c.Repository, "."+myName+".settings")
+    Debugf("trying to read cache settings from %s", cacheFile)
     b, err := ioutil.ReadFile(filepath.Join(c.Repository, "."+myName+".settings"))
     if err != nil {
         return err
