@@ -26,6 +26,16 @@
   - if found, set config from it
   - then overwrite options from command line parameters
     - deal with chicken-egg repository parameter
+    - which values to read from cache?
+      - on list:
+        - schedule
+      - on run:
+        - origin
+        - schedule
+        - maxKeep
+        - noPurge
+        - rsyncPath
+        - rsyncOpts
   - then write out config struct to the file again
 
 bugs:

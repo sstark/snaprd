@@ -61,6 +61,25 @@ func (c *Config) WriteCache() error {
     return err
 }
 
+func (c *Config) ReadCache() error {
+    t := new(Config)
+    b, err := ioutil.ReadFile(filepath.Join(c.Repository, "."+myName+".settings"))
+    if err != nil {
+        return err
+    } else {
+        err = json.Unmarshal(b, &t)
+        if err != nil {
+            return err
+        }
+        c.RsyncPath = t.RsyncPath
+        c.RsyncOpts = t.RsyncOpts
+        c.Origin    = t.Origin
+        c.Schedule  = t.Schedule
+        c.MaxKeep   = t.MaxKeep
+        c.NoPurge   = t.NoPurge
+    }
+    return nil
+}
 
 var subcmd string = ""
 
@@ -133,6 +152,11 @@ func LoadConfig() *Config {
                 "one of " + schedules.String())
             flags.Parse(os.Args[2:])
             fmt.Println(config)
+            err := config.ReadCache()
+            if err != nil {
+                log.Println("error reading cached settings (using defaults):", err)
+            }
+            Debugf("cached config: %s", config)
             return config
         }
     case "help", "-h", "--help":
