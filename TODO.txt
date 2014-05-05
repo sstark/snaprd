@@ -21,27 +21,8 @@
 - defined exit status of snaprd
 - forward signals to children as appropriate
 - regularly log memory stats
-- cache schedule in repository
-  - try to load json file from repository
-  - if found, set config from it
-  - then overwrite options from command line parameters
-    - deal with chicken-egg repository parameter
-    - which values to read from cache?
-      - on list:
-        - schedule
-      - on run:
-        - origin
-        - schedule
-        - maxKeep
-        - noPurge
-        - rsyncPath
-        - rsyncOpts
-  - then write out config struct to the file again
 
 bugs:
-
-- *Snapshot.period does not work as expected: it does not return all snapshots that it should return,
-  at least not in the case "there is only one snapshot"
 
 - SIGBUS error!?
 
