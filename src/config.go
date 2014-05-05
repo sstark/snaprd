@@ -130,7 +130,13 @@ func LoadConfig() *Config {
             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
             }
-            err := config.WriteCache()
+            path := filepath.Join(config.repository, DATA_SUBDIR)
+            Debugf("creating repository:", path)
+            err := os.MkdirAll(path, 00755)
+            if err != nil {
+                log.Fatal(err)
+            }
+            err = config.WriteCache()
             if err != nil {
                 log.Printf("could not write settings cache file:", err)
             }

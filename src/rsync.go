@@ -4,7 +4,6 @@ import (
     "bufio"
     "io"
     "log"
-    "os"
     "os/exec"
     "path/filepath"
 )
@@ -69,15 +68,6 @@ func runRsyncCommand(cmd *exec.Cmd) error {
 }
 
 func CreateSnapshot(base *Snapshot) {
-    // first snapshot
-    if base == nil {
-        path := filepath.Join(config.repository, DATA_SUBDIR)
-        log.Println("creating destination directory for initial snapshot:", path)
-        err := os.MkdirAll(path, 00755)
-        if err != nil {
-            log.Fatal(err)
-        }
-    }
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
     err := runRsyncCommand(cmd)
