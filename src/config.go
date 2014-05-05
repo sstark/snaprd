@@ -133,6 +133,10 @@ func LoadConfig() *Config {
             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
             }
+            err := config.WriteCache()
+            if err != nil {
+                log.Printf("could not write settings cache file:", err)
+            }
             return config
         }
     case "list":
