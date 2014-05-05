@@ -21,6 +21,7 @@
 - defined exit status of snaprd
 - forward signals to children as appropriate
 - regularly log memory stats
+- deal with negative time shifts in transComplete()
 
 bugs:
 
