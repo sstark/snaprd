@@ -48,7 +48,7 @@ func subcmdRun() {
             if err != nil {
                 log.Println(err)
             }
-            for _, s := range snapshots.state(STATE_OBSOLETE + STATE_PURGING, STATE_COMPLETE) {
+            for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
                 s.purge()
             }
         }, time.Second*3)
@@ -65,7 +65,7 @@ func subcmdList() {
     if err != nil {
         log.Println(err)
     }
-    for n := len(intervals)-2; n >= 0; n-- {
+    for n := len(intervals) - 2; n >= 0; n-- {
         Debugf("listing interval %d", n)
         if config.showAll {
             snapshots = snapshots.state(ANY, NONE)

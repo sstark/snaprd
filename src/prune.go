@@ -24,8 +24,8 @@ func prune() {
         if len(iv) > 2 {
             // prune highest interval by maximum number
             if (i == len(intervals)-2) &&
-               (len(iv) > config.MaxKeep) &&
-               (config.MaxKeep != 0) {
+                (len(iv) > config.MaxKeep) &&
+                (config.MaxKeep != 0) {
                 Debugf("%d snapshots in oldest interval", len(iv))
                 log.Printf("mark oldest as obsolete: %s", iv[0])
                 iv[0].transObsolete()
@@ -35,12 +35,14 @@ func prune() {
             youngest := len(iv) - 1
             secondYoungest := youngest - 1
             dist := iv[youngest].startTime.Sub(iv[secondYoungest].startTime)
-            if (dist.Seconds() < intervals[i].Seconds()) {
+            if dist.Seconds() < intervals[i].Seconds() {
                 log.Printf("mark as obsolete: %s", iv[youngest].Name())
                 iv[youngest].transObsolete()
                 pruneAgain = true
             }
-            if pruneAgain { prune() }
+            if pruneAgain {
+                prune()
+            }
         }
     }
 }

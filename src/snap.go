@@ -262,7 +262,7 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
 // return a list of snapshots within the given interval
 func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
     t := time.Now()
-    from := t.Add(-intervals.offset(i+1))
+    from := t.Add(-intervals.offset(i + 1))
     to := t.Add(-intervals.offset(i))
     return sl.period(from, to)
 }

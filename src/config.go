@@ -1,18 +1,18 @@
 package main
 
 import (
+    "encoding/json"
     "flag"
     "fmt"
+    "io/ioutil"
     "log"
     "os"
-    "strings"
-    "encoding/json"
     "path/filepath"
-    "io/ioutil"
+    "strings"
 )
 
 const (
-    myName = "snaprd"
+    myName      = "snaprd"
     DATA_SUBDIR = ".data"
 )
 
@@ -68,13 +68,13 @@ func (c *Config) ReadCache() error {
         }
         c.RsyncPath = t.RsyncPath
         c.RsyncOpts = t.RsyncOpts
-        c.Origin    = t.Origin
+        c.Origin = t.Origin
         if _, ok := schedules[t.Schedule]; ok == false {
             log.Fatalln("no such schedule:", t.Schedule)
         }
-        c.Schedule  = t.Schedule
-        c.MaxKeep   = t.MaxKeep
-        c.NoPurge   = t.NoPurge
+        c.Schedule = t.Schedule
+        c.MaxKeep = t.MaxKeep
+        c.NoPurge = t.NoPurge
     }
     return nil
 }
@@ -119,7 +119,7 @@ func LoadConfig() *Config {
                 "where to store snapshots")
             flags.StringVar(&(config.Schedule),
                 "schedule", "longterm",
-                "one of " + schedules.String())
+                "one of "+schedules.String())
             flags.IntVar(&(config.MaxKeep),
                 "maxKeep", 0,
                 "how many snapshots to keep in highest (oldest) interval. Use 0 to keep all")
@@ -156,7 +156,7 @@ func LoadConfig() *Config {
                 "show all snapshots. Otherwise only complete snapshots are shown")
             flags.StringVar(&(config.Schedule),
                 "schedule", "longterm",
-                "one of " + schedules.String())
+                "one of "+schedules.String())
             flags.Parse(os.Args[2:])
             err := config.ReadCache()
             if err != nil {

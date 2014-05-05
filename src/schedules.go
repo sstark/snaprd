@@ -1,8 +1,8 @@
 package main
 
 import (
-    "time"
     "strings"
+    "time"
 )
 
 const (
@@ -29,7 +29,7 @@ func (il intervalList) offset(i int) time.Duration {
 
 // returns how many snapshots are the goal in the given interval
 func (il intervalList) goal(i int) int {
-    return int(il[i+1]/il[i])
+    return int(il[i+1] / il[i])
 }
 
 type scheduleList map[string]intervalList
@@ -45,7 +45,7 @@ func (schl *scheduleList) String() string {
 /*
   The span of an interval is always the snapshot distance of the next interval.
 */
-var schedules = scheduleList {
+var schedules = scheduleList{
     "longterm":  {hour * 6, day, week, month, future},
     "shortterm": {minute * 10, hour * 2, day, week, month, future},
     "testing":   {second * 5, second * 20, second * 140, second * 280, future},

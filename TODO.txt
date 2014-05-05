@@ -17,6 +17,10 @@
   - waiting time for next snapshot should be adjusted accordingly.
      - Maybe use a waiting_time channel?
 - start first snapshot immediately, if that makes sense
+  - adjust next snapshot start time based on starttime of youngest snapshot
+    - if it's older than intervals[0] immediately start
+    - if it's younger than intervals[0] wait accordingly
+    - wait 5 seconds anyway
 - think about if it is useful to add the full origin path name to the repository subdirs
 - defined exit status of snaprd
 - forward signals to children as appropriate
