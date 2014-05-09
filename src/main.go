@@ -17,6 +17,26 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
+// return duration long enough to stay in normal snapshot interval
+func GetGroove() time.Duration {
+    snapshots, err := FindSnapshots()
+    if err != nil {
+        return 0
+    }
+    lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
+    if lastGood == nil {
+        return 0
+    }
+    gap := time.Now().Sub(lastGood.startTime)
+    Debugf("gap: %s", gap)
+    wait := schedules[config.Schedule][0] - gap
+    if wait > 0 {
+        log.Println("wait", wait, "before next snapshot")
+        return wait
+    }
+    return 0
+}
+
 func periodic(f func(), d time.Duration) {
     ticker := time.NewTicker(d)
     for {
@@ -27,20 +47,22 @@ func periodic(f func(), d time.Duration) {
 
 func subcmdRun() {
     // run snapshot scheduler at the lowest interval rate
-    go periodic(func() {
-        snapshots, err := FindSnapshots()
-        if err != nil {
-            log.Println(err)
-        }
-        lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
-        if lastGood != nil {
-            Debugf("lastgood: %s\n", lastGood.String())
-        } else {
-            log.Println("lastgood: could not find suitable base snapshot")
-        }
-        CreateSnapshot(lastGood)
-        prune()
-    }, schedules[config.Schedule][0])
+    time.AfterFunc(GetGroove(), func() {
+        periodic(func() {
+            snapshots, err := FindSnapshots()
+            if err != nil {
+                log.Println(err)
+            }
+            lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
+            if lastGood != nil {
+                Debugf("lastgood: %s\n", lastGood.String())
+            } else {
+                log.Println("lastgood: could not find suitable base snapshot")
+            }
+            CreateSnapshot(lastGood)
+            prune()
+        }, schedules[config.Schedule][0])
+    })
 
     if !config.NoPurge {
         go periodic(func() {
