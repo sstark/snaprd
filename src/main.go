@@ -63,6 +63,7 @@ func subcmdRun() {
             prune()
         }, schedules[config.Schedule][0])
     })
+    Debugf("started snapshot creation goroutine")
 
     if !config.NoPurge {
         go periodic(func() {
@@ -75,6 +76,7 @@ func subcmdRun() {
             }
         }, time.Second*3)
     }
+    Debugf("started purge goroutine")
 
     c := make(chan os.Signal, 1)
     signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
