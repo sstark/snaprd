@@ -71,10 +71,11 @@ func subcmdRun() {
             if err != nil {
                 log.Println(err)
             }
+            Debugf("purging")
             for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
                 s.purge()
             }
-        }, time.Second*3)
+        }, schedules[config.Schedule][0]/2)
     }
     Debugf("started purge goroutine")
 
