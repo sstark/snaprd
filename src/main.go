@@ -37,18 +37,12 @@ func GetGroove() time.Duration {
     return 0
 }
 
-func periodic(f func(), d time.Duration) {
-    ticker := time.NewTicker(d)
-    for {
-        f()
-        <-ticker.C
-    }
-}
-
 func subcmdRun() {
+    killRsync := make(chan bool, 1)
     // run snapshot scheduler at the lowest interval rate
     time.AfterFunc(GetGroove(), func() {
-        periodic(func() {
+        ticker := time.NewTicker(schedules[config.Schedule][0])
+        for {
             snapshots, err := FindSnapshots()
             if err != nil {
                 log.Println(err)
@@ -59,29 +53,40 @@ func subcmdRun() {
             } else {
                 log.Println("lastgood: could not find suitable base snapshot")
             }
-            CreateSnapshot(lastGood)
+            err = CreateSnapshot(lastGood, killRsync)
+            if err != nil {
+                Debugf("snapshot creation finally failed, exit loop")
+                break
+            }
             prune()
-        }, schedules[config.Schedule][0])
+            <-ticker.C
+        }
     })
     Debugf("started snapshot creation goroutine")
 
     if !config.NoPurge {
-        go periodic(func() {
-            snapshots, err := FindSnapshots()
-            if err != nil {
-                log.Println(err)
+        ticker := time.NewTicker(schedules[config.Schedule][0] / 2)
+        go func() {
+            for {
+                snapshots, err := FindSnapshots()
+                if err != nil {
+                    log.Println(err)
+                }
+                Debugf("purging")
+                for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
+                    s.purge()
+                }
+                <-ticker.C
             }
-            Debugf("purging")
-            for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
-                s.purge()
-            }
-        }, schedules[config.Schedule][0]/2)
+        }()
     }
     Debugf("started purge goroutine")
 
     c := make(chan os.Signal, 1)
     signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-    fmt.Println("Got signal:", <-c)
+    log.Println("Got signal", <-c, "-> cleaning up before exit")
+    killRsync <- true
+    os.Exit(0)
 }
 
 func subcmdList() {
