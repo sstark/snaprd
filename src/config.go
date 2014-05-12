@@ -40,6 +40,7 @@ type Config struct {
     showAll    bool
     MaxKeep    int
     NoPurge    bool
+    NoWait     bool
 }
 
 func (c *Config) WriteCache() error {
@@ -126,6 +127,9 @@ func LoadConfig() *Config {
             flags.BoolVar(&(config.NoPurge),
                 "noPurge", false,
                 "if set, obsolete snapshots will not be deleted")
+            flags.BoolVar(&(config.NoWait),
+                "noWait", false,
+                "if set, skip the initial waiting time before the first snapshot")
             flags.Parse(os.Args[2:])
             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)

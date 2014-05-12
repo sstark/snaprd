@@ -38,6 +38,9 @@ func GetGroove() time.Duration {
 }
 
 func subcmdRun() {
+    if !config.NoWait {
+        time.Sleep(time.Second * 30)
+    }
     killRsync := make(chan bool, 1)
     // run snapshot scheduler at the lowest interval rate
     time.AfterFunc(GetGroove(), func() {
