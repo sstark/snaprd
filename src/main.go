@@ -41,9 +41,11 @@ func subcmdRun() {
     if !config.NoWait {
         time.Sleep(time.Second * 30)
     }
+    gracefulExit := make(chan bool)
     killRsync := make(chan bool, 1)
     // run snapshot scheduler at the lowest interval rate
     time.AfterFunc(GetGroove(), func() {
+        breakLoop := false
         ticker := time.NewTicker(schedules[config.Schedule][0])
         for {
             snapshots, err := FindSnapshots()
@@ -59,10 +61,29 @@ func subcmdRun() {
             err = CreateSnapshot(lastGood, killRsync)
             if err != nil {
                 Debugf("snapshot creation finally failed, exit loop")
+                // If we would break immediately here, the select
+                // statement later would never try to read from gracefulExit.
+                // In the case of a graceful exit AND a failing CreateSnapshot()
+                // this would lead to a write to gracefulExit blocking forever.
+                breakLoop = true
+                // If snapshot creation takes longer than the ticker interval
+                // the next click will be waiting already before the loop is
+                // broken. Therefor stop the ticker here, so gracefulExit
+                // will be read from and no blocking will happen.
+                ticker.Stop()
+            }
+            Debugf("pruning")
+            prune()
+            select {
+            case <-gracefulExit:
+                Debugf("gracefully exiting snapshot creation goroutine")
+                breakLoop = true
+            case <-ticker.C:
+            }
+            if breakLoop {
+                Debugf("breaking loop")
                 break
             }
-            prune()
-            <-ticker.C
         }
     })
     Debugf("started snapshot creation goroutine")
@@ -79,17 +100,35 @@ func subcmdRun() {
                 for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
                     s.purge()
                 }
-                <-ticker.C
+                select {
+                case <-gracefulExit:
+                    Debugf("gracefully exiting purge goroutine")
+                    return
+                case <-ticker.C:
+                }
             }
         }()
     }
     Debugf("started purge goroutine")
 
-    c := make(chan os.Signal, 1)
-    signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-    log.Println("Got signal", <-c, "-> cleaning up before exit")
-    killRsync <- true
-    os.Exit(0)
+    sigc := make(chan os.Signal, 1)
+    signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+    sig := <-sigc
+    Debugf("Got signal", sig)
+    switch sig {
+        case syscall.SIGINT, syscall.SIGTERM: {
+            log.Println("-> Immediate exit")
+            killRsync <- true
+            os.Exit(0)
+        }
+        case syscall.SIGUSR1: {
+            log.Println("-> Graceful exit")
+            // notify every listener
+            gracefulExit <- true
+            gracefulExit <- true
+            time.Sleep(time.Second)
+        }
+    }
 }
 
 func subcmdList() {
