@@ -1,8 +1,5 @@
 - pretty symlinks for users
 - check for free space
-- signal handling
-  - need to send SIGTERM twice within e. g. 3 seconds in order to quit
-    immediately, otherwise quit after finishing all tasks
 - make sure only a single instance is running at a time
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
@@ -14,22 +11,15 @@
         or not, saving disk space.
 - what happens when restarting snaprd after a while:
   - it will obsolete many snapshots. This is okay, as long as the deletion will be more conservative
-  - waiting time for next snapshot should be adjusted accordingly.
-     - Maybe use a waiting_time channel?
-- start first snapshot immediately, if that makes sense
-  - adjust next snapshot start time based on starttime of youngest snapshot
-    - if it's older than intervals[0] immediately start
-    - if it's younger than intervals[0] wait accordingly
-    - wait 5 seconds anyway
 - think about if it is useful to add the full origin path name to the repository subdirs
-- defined exit status of snaprd
-- forward signals to children as appropriate
 - regularly log memory stats
 - deal with negative time shifts in transComplete()
 - fix race condition between goroutines:
   - runner and purger both use FindSnapshots(). This should be done better
   - maybe a finder goroutine?
   - is it possible or needed at all?
+- "graceful" subcommand, which will end snaprd after the current purge and/or
+  rsync has finished
 
 bugs:
 
