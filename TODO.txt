@@ -20,6 +20,8 @@
   - is it possible or needed at all?
 - "graceful" subcommand, which will end snaprd after the current purge and/or
   rsync has finished
+- when snaprd is initially waiting or getting the groove, the graceful exit
+  will block, which should be handled
 
 bugs:
 
