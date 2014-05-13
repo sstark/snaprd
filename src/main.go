@@ -149,7 +149,11 @@ func subcmdList() {
         if n < len(intervals)-2 {
             fmt.Printf("### from %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
         } else {
-            fmt.Printf("### from past, %d\n", len(snapshots))
+            if config.MaxKeep == 0 {
+                fmt.Printf("### from past, %d/∞\n", len(snapshots))
+            } else {
+                fmt.Printf("### from past, %d/%d\n", len(snapshots), config.MaxKeep)
+            }
         }
         for i, sn := range snapshots {
             stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
