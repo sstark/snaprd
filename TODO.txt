@@ -1,6 +1,9 @@
 - pretty symlinks for users
 - check for free space
 - make sure only a single instance is running at a time
+  1 if exist $REPO/.lock -> fatal
+  2 write $REPO/.lock
+  3 defer delete $REPO/.lock
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
 - how to deal with oldest snapshot?

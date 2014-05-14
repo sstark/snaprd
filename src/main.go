@@ -41,7 +41,10 @@ func subcmdRun() {
     if !config.NoWait {
         time.Sleep(time.Second * 30)
     }
-    gracefulExit := make(chan bool)
+    createExit := make(chan bool)
+    createExitDone := make(chan bool)
+    purgeExit := make(chan bool)
+    purgeExitDone := make(chan bool)
     killRsync := make(chan bool, 1)
     // run snapshot scheduler at the lowest interval rate
     time.AfterFunc(GetGroove(), func() {
@@ -60,7 +63,7 @@ func subcmdRun() {
             }
             err = CreateSnapshot(lastGood, killRsync)
             if err != nil {
-                Debugf("snapshot creation finally failed, exit loop")
+                Debugf("snapshot creation finally failed (%s), exit loop", err)
                 // If we would break immediately here, the select
                 // statement later would never try to read from gracefulExit.
                 // In the case of a graceful exit AND a failing CreateSnapshot()
@@ -71,17 +74,22 @@ func subcmdRun() {
                 // broken. Therefor stop the ticker here, so gracefulExit
                 // will be read from and no blocking will happen.
                 ticker.Stop()
+                Debugf("killing purger")
+                purgeExit <- true
+                <-purgeExitDone
+                os.Exit(1)
             }
             Debugf("pruning")
             prune()
             select {
-            case <-gracefulExit:
+            case <-createExit:
                 Debugf("gracefully exiting snapshot creation goroutine")
                 breakLoop = true
             case <-ticker.C:
             }
             if breakLoop {
                 Debugf("breaking loop")
+                createExitDone <- true
                 break
             }
         }
@@ -101,8 +109,9 @@ func subcmdRun() {
                     s.purge()
                 }
                 select {
-                case <-gracefulExit:
+                case <-purgeExit:
                     Debugf("gracefully exiting purge goroutine")
+                    purgeExitDone <- true
                     return
                 case <-ticker.C:
                 }
@@ -123,10 +132,11 @@ func subcmdRun() {
         }
         case syscall.SIGUSR1: {
             log.Println("-> Graceful exit")
-            // notify every listener
-            gracefulExit <- true
-            gracefulExit <- true
-            time.Sleep(time.Second)
+            createExit <- true
+            <-createExitDone
+            purgeExit <- true
+            <-purgeExitDone
+            os.Exit(0)
         }
     }
 }
