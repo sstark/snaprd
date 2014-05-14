@@ -46,6 +46,10 @@ func subcmdRun() {
     purgeExit := make(chan bool)
     purgeExitDone := make(chan bool)
     killRsync := make(chan bool, 1)
+    // The obsoleteQueue should not be larger than the absolute
+    // number of expected snapshots. However, there is no way
+    // (yet) to calculate that number.
+    obsoleteQueue := make(chan *Snapshot, 100)
     // run snapshot scheduler at the lowest interval rate
     time.AfterFunc(GetGroove(), func() {
         breakLoop := false
@@ -80,7 +84,7 @@ func subcmdRun() {
                 os.Exit(1)
             }
             Debugf("pruning")
-            prune()
+            prune(obsoleteQueue)
             select {
             case <-createExit:
                 Debugf("gracefully exiting snapshot creation goroutine")
@@ -97,28 +101,32 @@ func subcmdRun() {
     Debugf("started snapshot creation goroutine")
 
     if !config.NoPurge {
-        ticker := time.NewTicker(schedules[config.Schedule][0] / 2)
+        // Usually the purger gets its input from the obsoleteQueue.
+        // But there could be snapshots left behind from a previously
+        // failed snaprd run, so we fill the obsoleteQueue once at the
+        // beginning
+        snapshots, err := FindSnapshots()
+        if err != nil {
+            log.Println(err)
+        }
+        for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
+            Debugf("found dangling snapshot: %s", sn)
+            obsoleteQueue <- sn
+        }
         go func() {
             for {
-                snapshots, err := FindSnapshots()
-                if err != nil {
-                    log.Println(err)
-                }
-                Debugf("purging")
-                for _, s := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
-                    s.purge()
-                }
                 select {
                 case <-purgeExit:
                     Debugf("gracefully exiting purge goroutine")
                     purgeExitDone <- true
                     return
-                case <-ticker.C:
+                case sn := <-obsoleteQueue:
+                    sn.purge()
                 }
             }
         }()
+        Debugf("started purge goroutine")
     }
-    Debugf("started purge goroutine")
 
     sigc := make(chan os.Signal, 1)
     signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)

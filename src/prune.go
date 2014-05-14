@@ -4,9 +4,10 @@ import (
     "log"
 )
 
-// TODO should add more checks:
-// - don't delete hardlink base
-func prune() {
+// Sieves snapshots according to schedule and marks
+// them as obsolete. Also, enqueue them in the buffered
+// channel q for later reuse or deletion
+func prune(q chan *Snapshot) {
     intervals := schedules[config.Schedule]
     // interval 0 does not need pruning, start with 1
     for i := 1; i < len(intervals)-1; i++ {
@@ -38,10 +39,11 @@ func prune() {
             if dist.Seconds() < intervals[i].Seconds() {
                 log.Printf("mark as obsolete: %s", iv[youngest].Name())
                 iv[youngest].transObsolete()
+                q <- iv[youngest]
                 pruneAgain = true
             }
             if pruneAgain {
-                prune()
+                prune(q)
             }
         }
     }
