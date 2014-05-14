@@ -5,6 +5,7 @@ import (
     "log"
     "os"
     "os/signal"
+    "path/filepath"
     "syscall"
     "time"
 )
@@ -38,6 +39,9 @@ func GetGroove() time.Duration {
 }
 
 func subcmdRun() (ferr error) {
+    pl := NewPidLocker(filepath.Join(config.repository, ".pid"))
+    pl.Lock()
+    defer pl.Unlock()
     if !config.NoWait {
         time.Sleep(time.Second * 30)
     }
@@ -89,7 +93,6 @@ func subcmdRun() (ferr error) {
             if breakLoop {
                 Debugf("breaking loop")
                 createExitDone <- true
-                Debugf("wrote to createExitDone channel")
                 return
             }
         }
@@ -208,6 +211,7 @@ func main() {
         err := subcmdRun()
         if err != nil {
             log.Println(err)
+            os.Exit(1)
         }
     case "list":
         fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
