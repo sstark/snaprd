@@ -125,12 +125,14 @@ func subcmdRun() {
     sig := <-sigc
     Debugf("Got signal", sig)
     switch sig {
-        case syscall.SIGINT, syscall.SIGTERM: {
+    case syscall.SIGINT, syscall.SIGTERM:
+        {
             log.Println("-> Immediate exit")
             killRsync <- true
             os.Exit(0)
         }
-        case syscall.SIGUSR1: {
+    case syscall.SIGUSR1:
+        {
             log.Println("-> Graceful exit")
             createExit <- true
             <-createExitDone
