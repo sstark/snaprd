@@ -37,7 +37,7 @@ func GetGroove() time.Duration {
     return 0
 }
 
-func subcmdRun() {
+func subcmdRun() (ferr error) {
     if !config.NoWait {
         time.Sleep(time.Second * 30)
     }
@@ -68,20 +68,15 @@ func subcmdRun() {
             err = CreateSnapshot(lastGood, killRsync)
             if err != nil {
                 Debugf("snapshot creation finally failed (%s), exit loop", err)
-                // If we would break immediately here, the select
-                // statement later would never try to read from gracefulExit.
-                // In the case of a graceful exit AND a failing CreateSnapshot()
-                // this would lead to a write to gracefulExit blocking forever.
                 breakLoop = true
-                // If snapshot creation takes longer than the ticker interval
-                // the next click will be waiting already before the loop is
-                // broken. Therefor stop the ticker here, so gracefulExit
-                // will be read from and no blocking will happen.
                 ticker.Stop()
                 Debugf("killing purger")
                 purgeExit <- true
+                purgeExit = nil
                 <-purgeExitDone
-                os.Exit(1)
+                purgeExitDone = nil
+                go func() { createExit <- true }()
+                ferr = err
             }
             Debugf("pruning")
             prune(obsoleteQueue)
@@ -94,7 +89,8 @@ func subcmdRun() {
             if breakLoop {
                 Debugf("breaking loop")
                 createExitDone <- true
-                break
+                Debugf("wrote to createExitDone channel")
+                return
             }
         }
     })
@@ -130,25 +126,31 @@ func subcmdRun() {
 
     sigc := make(chan os.Signal, 1)
     signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
-    sig := <-sigc
-    Debugf("Got signal", sig)
-    switch sig {
-    case syscall.SIGINT, syscall.SIGTERM:
+    select {
+    case sig := <-sigc:
         {
-            log.Println("-> Immediate exit")
-            killRsync <- true
-            os.Exit(0)
+            Debugf("Got signal", sig)
+            switch sig {
+            case syscall.SIGINT, syscall.SIGTERM:
+                {
+                    log.Println("-> Immediate exit")
+                    killRsync <- true
+                    ferr = nil
+                }
+            case syscall.SIGUSR1:
+                {
+                    log.Println("-> Graceful exit")
+                    if createExit != nil { createExit <- true }
+                    if createExitDone != nil { <-createExitDone }
+                    if purgeExit != nil { purgeExit <- true }
+                    if purgeExitDone != nil { <-purgeExitDone }
+                    ferr = nil
+                }
+            }
         }
-    case syscall.SIGUSR1:
-        {
-            log.Println("-> Graceful exit")
-            createExit <- true
-            <-createExitDone
-            purgeExit <- true
-            <-purgeExitDone
-            os.Exit(0)
-        }
+    case <-createExitDone:
     }
+    return
 }
 
 func subcmdList() {
@@ -191,7 +193,6 @@ func subcmdList() {
             }
         }
     }
-    os.Exit(0)
 }
 
 func main() {
@@ -204,9 +205,13 @@ func main() {
     case "run":
         log.Printf("%s started with pid %d\n", myName, os.Getpid())
         log.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
-        subcmdRun()
+        err := subcmdRun()
+        if err != nil {
+            log.Println(err)
+        }
     case "list":
         fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdList()
     }
+    os.Exit(0)
 }
