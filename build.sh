@@ -1,2 +1,2 @@
 #!/bin/bash
-go build -o snaprd src/*.go
+go build -race -o snaprd src/*.go
