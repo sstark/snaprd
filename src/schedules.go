@@ -1,4 +1,7 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Define snapshot schedules (duration tables) and how to handle them
+
 package main
 
 import (
@@ -19,7 +22,7 @@ const (
 
 type intervalList []time.Duration
 
-// returns how long ago the given interval started
+// Returns how long ago the given interval started
 func (il intervalList) offset(i int) time.Duration {
     if i == 0 {
         return 0
@@ -28,7 +31,7 @@ func (il intervalList) offset(i int) time.Duration {
     }
 }
 
-// returns how many snapshots are the goal in the given interval
+// Returns how many snapshots are the goal in the given interval
 func (il intervalList) goal(i int) int {
     return int(il[i+1] / il[i])
 }
@@ -43,9 +46,9 @@ func (schl *scheduleList) String() string {
     return strings.Join(a, ",")
 }
 
-/*
-  The span of an interval is always the snapshot distance of the next interval.
-*/
+// List of available snapshot schedules. Defines how often snapshots are made
+// or purged. The span of an interval is always the snapshot distance of the
+// next interval.
 var schedules = scheduleList{
     "longterm":  {hour * 6, day, week, month, long},
     "shortterm": {minute * 10, hour * 2, day, week, month, long},

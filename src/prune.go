@@ -1,13 +1,17 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Snapshot pruning ("aging")
+// This is the core functionality: keep the number of snapshots within the
+// user selected schedule's limits or maximum disk usage or other constraints
+
 package main
 
 import (
     "log"
 )
 
-// Sieves snapshots according to schedule and marks
-// them as obsolete. Also, enqueue them in the buffered
-// channel q for later reuse or deletion
+// Sieves snapshots according to schedule and marks them as obsolete. Also,
+// enqueue them in the buffered channel q for later reuse or deletion.
 func prune(q chan *Snapshot) {
     intervals := schedules[config.Schedule]
     // interval 0 does not need pruning, start with 1

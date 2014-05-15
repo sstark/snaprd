@@ -1,4 +1,8 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Global configuration with disk caching
+// Parsing of command line flags
+
 package main
 
 import (
@@ -44,6 +48,7 @@ type Config struct {
     NoWait     bool
 }
 
+// WriteCache writes the global configuration to disk as a json file.
 func (c *Config) WriteCache() error {
     cacheFile := filepath.Join(c.repository, "."+myName+".settings")
     Debugf("trying to write cached settings to %s", cacheFile)
@@ -56,6 +61,8 @@ func (c *Config) WriteCache() error {
     return err
 }
 
+// ReadCache reads from the json configuration cache and resets assorted global
+// configuration values from it.
 func (c *Config) ReadCache() error {
     t := new(Config)
     cacheFile := filepath.Join(c.repository, "."+myName+".settings")

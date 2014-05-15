@@ -1,4 +1,7 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Snapshot in memory and on-disk format
+
 package main
 
 import (
@@ -59,6 +62,7 @@ func (s *Snapshot) String() string {
     return fmt.Sprintf("%d-%d %s", stime, etime, s.state.String())
 }
 
+// Name returns the relative pathname for the receiver snapshot.
 func (s *Snapshot) Name() string {
     stime := s.startTime.Unix()
     etime := s.endTime.Unix()
@@ -75,13 +79,13 @@ func (s *Snapshot) Name() string {
     return fmt.Sprintf("%d-%d-unknown", stime, etime)
 }
 
+// FullName returns the full pathname for the receiver snapshot.
 func (s *Snapshot) FullName() string {
     return filepath.Join(config.repository, DATA_SUBDIR, s.Name())
 }
 
-// Mark the latest snapshot for easy access.
-// Do not fail if not possible since it is more important
-// to continue creating new snapshots.
+// Mark the latest snapshot for easy access. Do not fail if not possible since
+// it is more important to continue creating new snapshots.
 func tryLink(target string) {
     linkName := filepath.Join(config.repository, "latest")
     fi, err := os.Lstat(linkName)
@@ -104,10 +108,11 @@ func tryLink(target string) {
     if err != nil {
         log.Println(err)
     } else {
-        //log.Println("symlink latest snapshot")
+        Debugf("symlink latest snapshot")
     }
 }
 
+// transComplete transitions the receiver to complete state.
 func (s *Snapshot) transComplete() {
     oldName := s.FullName()
     etime := time.Now()
@@ -127,6 +132,7 @@ func (s *Snapshot) transComplete() {
     tryLink(filepath.Join(DATA_SUBDIR, s.Name()))
 }
 
+// transObsolete transitions the receiver to obsolete state.
 func (s *Snapshot) transObsolete() {
     oldName := s.FullName()
     s.state = STATE_OBSOLETE
@@ -137,6 +143,7 @@ func (s *Snapshot) transObsolete() {
     }
 }
 
+// transPurging transitions the receiver to purging state.
 func (s *Snapshot) transPurging() {
     oldName := s.FullName()
     s.state = STATE_PURGING
@@ -147,6 +154,7 @@ func (s *Snapshot) transPurging() {
     }
 }
 
+// purge deletes the receiver snapshot from disk.
 func (s *Snapshot) purge() {
     s.transPurging()
     path := s.FullName()
@@ -163,7 +171,7 @@ func (s *Snapshot) matchFilter(f SnapshotState) bool {
 
 type SnapshotList []*Snapshot
 
-// find the last snapshot to use as a basis for the next one
+// Find the last snapshot to use as a basis for the next one.
 func (sl SnapshotList) lastGood() *Snapshot {
     var t time.Time
     var ix int = -1
@@ -179,6 +187,8 @@ func (sl SnapshotList) lastGood() *Snapshot {
     return sl[ix]
 }
 
+// parseSnapshotName split the given string up into the various values needed
+// for creating a Snapshot struct.
 func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
     sa := strings.Split(s, "-")
     var zero time.Time
@@ -222,6 +232,8 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
     return sl[i].startTime.Before(sl[j].startTime)
 }
 
+// FindSnapshots() reads the repository directory and returns a list of
+// Snapshot pointers for all valid snapshots it could find.
 func FindSnapshots() (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     dataPath := filepath.Join(config.repository, DATA_SUBDIR, "")
@@ -249,7 +261,7 @@ func FindSnapshots() (SnapshotList, error) {
     return snapshots, nil
 }
 
-// return a new list of snapshots that fall into the given time period
+// Return a new list of snapshots that fall into the given time period.
 func (sl SnapshotList) period(after, before time.Time) SnapshotList {
     slNew := make(SnapshotList, 0, len(sl))
     for _, sn := range sl {
@@ -260,7 +272,7 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
     return slNew
 }
 
-// return a list of snapshots within the given interval
+// Return a list of snapshots within the given interval.
 func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
     t := time.Now()
     from := t.Add(-intervals.offset(i + 1))
@@ -268,6 +280,8 @@ func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
     return sl.period(from, to)
 }
 
+// Return a filtered list of snapshots that match (include) or don't match
+// (exclude) the given state mask.
 func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
     slNew := make(SnapshotList, 0, len(sl))
     for _, sn := range sl {

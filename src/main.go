@@ -1,4 +1,8 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Functions according to sub commands given on command line
+// Main snapshot creation and purging loops
+
 package main
 
 import (
@@ -19,7 +23,7 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
-// FindDangling enqueues obsolete/purged snapshots into q
+// FindDangling enqueues obsolete/purged snapshots into q.
 func FindDangling(q chan *Snapshot) {
     snapshots, err := FindSnapshots()
     if err != nil {
@@ -32,7 +36,7 @@ func FindDangling(q chan *Snapshot) {
 }
 
 // LastGoodFromDisk lists the snapshots in the repository and returns a pointer
-// to the youngest complete snapshot
+// to the youngest complete snapshot.
 func LastGoodFromDisk() *Snapshot {
     snapshots, err := FindSnapshots()
     if err != nil {
@@ -77,7 +81,7 @@ func LastGoodTicker(in, out chan *Snapshot) {
 }
 
 // subcmdRun is the main, long-running routine and starts off a couple of
-// helper goroutines
+// helper goroutines.
 func subcmdRun() (ferr error) {
     pl := NewPidLocker(filepath.Join(config.repository, ".pid"))
     pl.Lock()
@@ -136,7 +140,7 @@ func subcmdRun() (ferr error) {
 
     // Usually the purger gets its input from the obsoleteQueue. But there
     // could be snapshots left behind from a previously failed snaprd run, so
-    // we fill the obsoleteQueue once at the beginning
+    // we fill the obsoleteQueue once at the beginning.
     FindDangling(obsoleteQueue)
 
     // Purger loop

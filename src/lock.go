@@ -1,4 +1,7 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Simple lock file mechanism to prevent multiple instances to run
+
 package main
 
 import (

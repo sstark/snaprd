@@ -1,4 +1,7 @@
 /* See the file "LICENSE.txt" for the full license governing this code. */
+
+// Handle creation and cancellation of os level process to create snapshots
+
 package main
 
 import (
@@ -10,6 +13,9 @@ import (
     "syscall"
 )
 
+// createRsyncCommand returns an exec.Command structure that, when executed,
+// creates a snapshot using rsync. Takes an optional (non-nil) base to be used
+// with rsyncs --link-dest feature.
 func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     cmd := exec.Command(config.RsyncPath)
     args := make([]string, 0, 256)
@@ -26,6 +32,8 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     return cmd
 }
 
+// runRsyncCommand executes the given command. On sucessful startup return an
+// error channel the caller can receive a return status from.
 func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
     var err error
     cmd.Stdout = os.Stdout
@@ -42,6 +50,11 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
     return nil, done
 }
 
+// CreateSnapshot starts a potentially long running rsync command and returns a
+// Snapshot pointer on success. If something is sent on the kill channel the
+// rsync process will be sent a SIGTERM signal.
+// For non-zero return values of rsync potentially restart the process if the
+// error was presumably volatile.
 func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
