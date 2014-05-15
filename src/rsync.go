@@ -42,7 +42,7 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
     return nil, done
 }
 
-func CreateSnapshot(base *Snapshot, kill chan bool) error {
+func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
     newSn := newIncompleteSnapshot()
     cmd := createRsyncCommand(newSn, base)
     err, done := runRsyncCommand(cmd)
@@ -58,7 +58,7 @@ func CreateSnapshot(base *Snapshot, kill chan bool) error {
             if err != nil {
                 log.Fatal("failed to kill: ", err)
             }
-            return errors.New("rsync killed by request")
+            return nil, errors.New("rsync killed by request")
         case err := <-done:
             Debugf("received something on done channel:", nil)
             if err != nil {
@@ -67,11 +67,11 @@ func CreateSnapshot(base *Snapshot, kill chan bool) error {
                 // - temporary network error
                 // - disk full?
                 // Detect external signalling?
-                return err
+                return nil, err
             }
             newSn.transComplete()
             log.Println("finished:", newSn.Name())
-            return nil
+            return newSn, nil
         }
     }
 }

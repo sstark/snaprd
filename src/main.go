@@ -19,24 +19,45 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
-// return duration long enough to stay in normal snapshot interval
-func GetGroove() time.Duration {
+func LastGoodFromDisk() *Snapshot {
     snapshots, err := FindSnapshots()
     if err != nil {
-        return 0
+        log.Println(err)
     }
-    lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
-    if lastGood == nil {
-        return 0
+    sn := snapshots.state(STATE_COMPLETE, NONE).lastGood()
+    if sn == nil {
+        log.Println("lastgood: could not find suitable base snapshot")
     }
-    gap := time.Now().Sub(lastGood.startTime)
-    Debugf("gap: %s", gap)
-    wait := schedules[config.Schedule][0] - gap
-    if wait > 0 {
-        log.Println("wait", wait, "before next snapshot")
-        return wait
+    return sn
+}
+
+// The LastGoodTicker is the clock for the create loop.
+// It takes the last created snapshot on its input channel
+// and outputs it on the output channel, but only after an
+// appropriate waiting time.
+// To start things off, the first lastGood snapshot has to
+// be read from disk.
+func LastGoodTicker(in, out chan *Snapshot) {
+    var gap, wait time.Duration
+    var sn *Snapshot
+    sn = LastGoodFromDisk()
+    Debugf("lastgood from disk: %s\n", sn.String())
+    // kick off the loop
+    go func() {
+        in <- sn
+        return
+    }()
+    for {
+        sn := <-in
+        gap = time.Now().Sub(sn.startTime)
+        Debugf("gap: %s", gap)
+        wait = schedules[config.Schedule][0] - gap
+        if wait > 0 {
+            log.Println("wait", wait, "before next snapshot")
+            time.Sleep(wait)
+        }
+        out <- sn
     }
-    return 0
 }
 
 func subcmdRun() (ferr error) {
@@ -55,26 +76,29 @@ func subcmdRun() (ferr error) {
     // number of expected snapshots. However, there is no way
     // (yet) to calculate that number.
     obsoleteQueue := make(chan *Snapshot, 100)
+    lastGoodIn := make(chan *Snapshot)
+    lastGoodOut := make(chan *Snapshot)
+    go LastGoodTicker(lastGoodIn, lastGoodOut)
     // run snapshot scheduler at the lowest interval rate
-    time.AfterFunc(GetGroove(), func() {
-        breakLoop := false
-        ticker := time.NewTicker(schedules[config.Schedule][0])
+    go func() {
+        var lastGood *Snapshot
+        var breakLoop bool
         for {
-            snapshots, err := FindSnapshots()
-            if err != nil {
-                log.Println(err)
+            select {
+            case <-createExit:
+                Debugf("gracefully exiting snapshot creation goroutine")
+                breakLoop = true
+            case lastGood = <-lastGoodOut:
             }
-            lastGood := snapshots.state(STATE_COMPLETE, NONE).lastGood()
-            if lastGood != nil {
-                Debugf("lastgood: %s\n", lastGood.String())
-            } else {
-                log.Println("lastgood: could not find suitable base snapshot")
+            if breakLoop {
+                Debugf("breaking loop")
+                createExitDone <- true
+                return
             }
-            err = CreateSnapshot(lastGood, killRsync)
-            if err != nil {
+            sn, err := CreateSnapshot(lastGood, killRsync)
+            if err != nil || sn == nil {
                 Debugf("snapshot creation finally failed (%s), exit loop", err)
                 breakLoop = true
-                ticker.Stop()
                 Debugf("killing purger")
                 purgeExit <- true
                 purgeExit = nil
@@ -83,21 +107,11 @@ func subcmdRun() (ferr error) {
                 go func() { createExit <- true }()
                 ferr = err
             }
+            lastGoodIn <- sn
             Debugf("pruning")
             prune(obsoleteQueue)
-            select {
-            case <-createExit:
-                Debugf("gracefully exiting snapshot creation goroutine")
-                breakLoop = true
-            case <-ticker.C:
-            }
-            if breakLoop {
-                Debugf("breaking loop")
-                createExitDone <- true
-                return
-            }
         }
-    })
+    }()
     Debugf("started snapshot creation goroutine")
 
     if !config.NoPurge {
