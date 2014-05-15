@@ -19,6 +19,7 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
+// FindDangling enqueues obsolete/purged snapshots into q
 func FindDangling(q chan *Snapshot) {
     snapshots, err := FindSnapshots()
     if err != nil {
@@ -30,6 +31,8 @@ func FindDangling(q chan *Snapshot) {
     }
 }
 
+// LastGoodFromDisk lists the snapshots in the repository and returns a pointer
+// to the youngest complete snapshot
 func LastGoodFromDisk() *Snapshot {
     snapshots, err := FindSnapshots()
     if err != nil {
@@ -42,12 +45,10 @@ func LastGoodFromDisk() *Snapshot {
     return sn
 }
 
-// The LastGoodTicker is the clock for the create loop.
-// It takes the last created snapshot on its input channel
-// and outputs it on the output channel, but only after an
-// appropriate waiting time.
-// To start things off, the first lastGood snapshot has to
-// be read from disk.
+// The LastGoodTicker is the clock for the create loop. It takes the last
+// created snapshot on its input channel and outputs it on the output channel,
+// but only after an appropriate waiting time. To start things off, the first
+// lastGood snapshot has to be read from disk.
 func LastGoodTicker(in, out chan *Snapshot) {
     var gap, wait time.Duration
     var sn *Snapshot
@@ -75,6 +76,8 @@ func LastGoodTicker(in, out chan *Snapshot) {
     }
 }
 
+// subcmdRun is the main, long-running routine and starts off a couple of
+// helper goroutines
 func subcmdRun() (ferr error) {
     pl := NewPidLocker(filepath.Join(config.repository, ".pid"))
     pl.Lock()
@@ -87,16 +90,16 @@ func subcmdRun() (ferr error) {
     purgeExit := make(chan bool)
     purgeExitDone := make(chan bool)
     killRsync := make(chan bool, 1)
-    // The obsoleteQueue should not be larger than the absolute
-    // number of expected snapshots. However, there is no way
-    // (yet) to calculate that number.
+    // The obsoleteQueue should not be larger than the absolute number of
+    // expected snapshots. However, there is no way (yet) to calculate that
+    // number.
     obsoleteQueue := make(chan *Snapshot, 100)
     lastGoodIn := make(chan *Snapshot)
     lastGoodOut := make(chan *Snapshot)
 
     go LastGoodTicker(lastGoodIn, lastGoodOut)
 
-    // run snapshot scheduler at the lowest interval rate
+    // Snapshot creation loop
     go func() {
         var lastGood *Snapshot
         var breakLoop bool
@@ -131,11 +134,12 @@ func subcmdRun() (ferr error) {
     }()
     Debugf("started snapshot creation goroutine")
 
-    // Usually the purger gets its input from the obsoleteQueue.
-    // But there could be snapshots left behind from a previously
-    // failed snaprd run, so we fill the obsoleteQueue once at the
-    // beginning
+    // Usually the purger gets its input from the obsoleteQueue. But there
+    // could be snapshots left behind from a previously failed snaprd run, so
+    // we fill the obsoleteQueue once at the beginning
     FindDangling(obsoleteQueue)
+
+    // Purger loop
     go func() {
         for {
             select {
@@ -152,6 +156,7 @@ func subcmdRun() (ferr error) {
     }()
     Debugf("started purge goroutine")
 
+    // Global signal handling
     sigc := make(chan os.Signal, 1)
     signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
     select {
@@ -183,6 +188,7 @@ func subcmdRun() (ferr error) {
     return
 }
 
+// subcmdList give the user an overview of what's in the repository.
 func subcmdList() {
     intervals := schedules[config.Schedule]
     snapshots, err := FindSnapshots()
