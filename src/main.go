@@ -52,7 +52,9 @@ func LastGoodTicker(in, out chan *Snapshot) {
     var gap, wait time.Duration
     var sn *Snapshot
     sn = LastGoodFromDisk()
-    Debugf("lastgood from disk: %s\n", sn.String())
+    if sn != nil {
+        Debugf("lastgood from disk: %s\n", sn.String())
+    }
     // kick off the loop
     go func() {
         in <- sn
@@ -60,12 +62,14 @@ func LastGoodTicker(in, out chan *Snapshot) {
     }()
     for {
         sn := <-in
-        gap = time.Now().Sub(sn.startTime)
-        Debugf("gap: %s", gap)
-        wait = schedules[config.Schedule][0] - gap
-        if wait > 0 {
-            log.Println("wait", wait, "before next snapshot")
-            time.Sleep(wait)
+        if sn != nil {
+            gap = time.Now().Sub(sn.startTime)
+            Debugf("gap: %s", gap)
+            wait = schedules[config.Schedule][0] - gap
+            if wait > 0 {
+                log.Println("wait", wait, "before next snapshot")
+                time.Sleep(wait)
+            }
         }
         out <- sn
     }
