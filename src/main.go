@@ -19,6 +19,17 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
+func FindDangling(q chan *Snapshot) {
+    snapshots, err := FindSnapshots()
+    if err != nil {
+        log.Println(err)
+    }
+    for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
+        Debugf("found dangling snapshot: %s", sn)
+        q <- sn
+    }
+}
+
 func LastGoodFromDisk() *Snapshot {
     snapshots, err := FindSnapshots()
     if err != nil {
@@ -78,7 +89,9 @@ func subcmdRun() (ferr error) {
     obsoleteQueue := make(chan *Snapshot, 100)
     lastGoodIn := make(chan *Snapshot)
     lastGoodOut := make(chan *Snapshot)
+
     go LastGoodTicker(lastGoodIn, lastGoodOut)
+
     // run snapshot scheduler at the lowest interval rate
     go func() {
         var lastGood *Snapshot
@@ -119,14 +132,7 @@ func subcmdRun() (ferr error) {
         // But there could be snapshots left behind from a previously
         // failed snaprd run, so we fill the obsoleteQueue once at the
         // beginning
-        snapshots, err := FindSnapshots()
-        if err != nil {
-            log.Println(err)
-        }
-        for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
-            Debugf("found dangling snapshot: %s", sn)
-            obsoleteQueue <- sn
-        }
+        FindDangling(obsoleteQueue)
         go func() {
             for {
                 select {
@@ -146,33 +152,27 @@ func subcmdRun() (ferr error) {
     signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
     select {
     case sig := <-sigc:
-        {
-            Debugf("Got signal", sig)
-            switch sig {
-            case syscall.SIGINT, syscall.SIGTERM:
-                {
-                    log.Println("-> Immediate exit")
-                    killRsync <- true
-                    ferr = nil
-                }
-            case syscall.SIGUSR1:
-                {
-                    log.Println("-> Graceful exit")
-                    if createExit != nil {
-                        createExit <- true
-                    }
-                    if createExitDone != nil {
-                        <-createExitDone
-                    }
-                    if purgeExit != nil {
-                        purgeExit <- true
-                    }
-                    if purgeExitDone != nil {
-                        <-purgeExitDone
-                    }
-                    ferr = nil
-                }
+        Debugf("Got signal", sig)
+        switch sig {
+        case syscall.SIGINT, syscall.SIGTERM:
+            log.Println("-> Immediate exit")
+            killRsync <- true
+            ferr = nil
+        case syscall.SIGUSR1:
+            log.Println("-> Graceful exit")
+            if createExit != nil {
+                createExit <- true
             }
+            if createExitDone != nil {
+                <-createExitDone
+            }
+            if purgeExit != nil {
+                purgeExit <- true
+            }
+            if purgeExitDone != nil {
+                <-purgeExitDone
+            }
+            ferr = nil
         }
     case <-createExitDone:
     }
