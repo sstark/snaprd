@@ -199,12 +199,12 @@ func subcmdList() {
         snapshots := snapshots.interval(intervals, n)
         Debugf("snapshots in interval %d: %s", n, snapshots)
         if n < len(intervals)-2 {
-            fmt.Printf("### from %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
+            fmt.Printf("### From %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
         } else {
             if config.MaxKeep == 0 {
-                fmt.Printf("### from past, %d/∞\n", len(snapshots))
+                fmt.Printf("### From past, %d/∞\n", len(snapshots))
             } else {
-                fmt.Printf("### from past, %d/%d\n", len(snapshots), config.MaxKeep)
+                fmt.Printf("### From past, %d/%d\n", len(snapshots), config.MaxKeep)
             }
         }
         for i, sn := range snapshots {
@@ -234,14 +234,14 @@ func main() {
     switch subcmd {
     case "run":
         log.Printf("%s started with pid %d\n", myName, os.Getpid())
-        log.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
+        log.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         err := subcmdRun()
         if err != nil {
             log.Println(err)
             os.Exit(1)
         }
     case "list":
-        fmt.Printf("Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
+        fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdList()
     }
     os.Exit(0)
