@@ -131,26 +131,26 @@ func subcmdRun() (ferr error) {
     }()
     Debugf("started snapshot creation goroutine")
 
-    if !config.NoPurge {
-        // Usually the purger gets its input from the obsoleteQueue.
-        // But there could be snapshots left behind from a previously
-        // failed snaprd run, so we fill the obsoleteQueue once at the
-        // beginning
-        FindDangling(obsoleteQueue)
-        go func() {
-            for {
-                select {
-                case <-purgeExit:
-                    Debugf("gracefully exiting purge goroutine")
-                    purgeExitDone <- true
-                    return
-                case sn := <-obsoleteQueue:
+    // Usually the purger gets its input from the obsoleteQueue.
+    // But there could be snapshots left behind from a previously
+    // failed snaprd run, so we fill the obsoleteQueue once at the
+    // beginning
+    FindDangling(obsoleteQueue)
+    go func() {
+        for {
+            select {
+            case <-purgeExit:
+                Debugf("gracefully exiting purge goroutine")
+                purgeExitDone <- true
+                return
+            case sn := <-obsoleteQueue:
+                if !config.NoPurge {
                     sn.purge()
                 }
             }
-        }()
-        Debugf("started purge goroutine")
-    }
+        }
+    }()
+    Debugf("started purge goroutine")
 
     sigc := make(chan os.Signal, 1)
     signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
