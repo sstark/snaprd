@@ -31,6 +31,7 @@ func prune(q chan *Snapshot) {
                 Debugf("%d snapshots in oldest interval", len(iv))
                 log.Printf("mark oldest as obsolete: %s", iv[0])
                 iv[0].transObsolete()
+                q <- iv[0]
                 pruneAgain = true
             }
             // regularly prune by sieving
