@@ -8,19 +8,11 @@
     - option "-keepOldest":
         wether to keep the oldest snapshot (thus being able to go back to the beginning)
         or not, saving disk space.
-- what happens when restarting snaprd after a while:
-  - it will obsolete many snapshots. This is okay, as long as the deletion will be more conservative
 - think about if it is useful to add the full origin path name to the repository subdirs
 - regularly log memory stats
 - deal with negative time shifts in transComplete()
-- fix race condition between goroutines:
-  - runner and purger both use FindSnapshots(). This should be done better
-  - maybe a finder goroutine?
-  - is it possible or needed at all?
 - "graceful" subcommand, which will end snaprd after the current purge and/or
   rsync has finished
-- when snaprd is initially waiting or getting the groove, the graceful exit
-  will block, which should be handled
 
 bugs:
 
