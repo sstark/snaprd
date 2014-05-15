@@ -2,21 +2,21 @@
 package main
 
 import (
-    "log"
     "io/ioutil"
+    "log"
     "os"
     "strconv"
 )
 
 type PidLocker struct {
     pid int
-    f string
+    f   string
 }
 
 func NewPidLocker(lockfile string) *PidLocker {
     return &PidLocker{
         pid: os.Getpid(),
-        f: lockfile,
+        f:   lockfile,
     }
 }
 

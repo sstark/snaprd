@@ -158,10 +158,18 @@ func subcmdRun() (ferr error) {
             case syscall.SIGUSR1:
                 {
                     log.Println("-> Graceful exit")
-                    if createExit != nil { createExit <- true }
-                    if createExitDone != nil { <-createExitDone }
-                    if purgeExit != nil { purgeExit <- true }
-                    if purgeExitDone != nil { <-purgeExitDone }
+                    if createExit != nil {
+                        createExit <- true
+                    }
+                    if createExitDone != nil {
+                        <-createExitDone
+                    }
+                    if purgeExit != nil {
+                        purgeExit <- true
+                    }
+                    if purgeExitDone != nil {
+                        <-purgeExitDone
+                    }
                     ferr = nil
                 }
             }
