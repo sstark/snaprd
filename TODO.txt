@@ -11,8 +11,10 @@
 - think about if it is useful to add the full origin path name to the repository subdirs
 - regularly log memory stats
 - deal with negative time shifts in transComplete()
-- "graceful" subcommand, which will end snaprd after the current purge and/or
-  rsync has finished
+- user configurable schedules? Or many predefined ones?
+- subcommand "schedule" to show details about schedules:
+  - expected number of snapshots
+  - expected disk usage, given a start value + daily changes
 
 bugs:
 
