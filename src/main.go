@@ -128,7 +128,10 @@ func subcmdRun() (ferr error) {
                 purgeExit = nil
                 <-purgeExitDone
                 purgeExitDone = nil
-                go func() { createExit <- true }()
+                go func() {
+                    createExit <- true
+                    return
+                }()
                 ferr = err
             }
             lastGoodIn <- sn

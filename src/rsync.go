@@ -46,6 +46,7 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
     done := make(chan error)
     go func() {
         done <- cmd.Wait()
+        return
     }()
     return nil, done
 }
