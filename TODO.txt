@@ -15,9 +15,4 @@
 - subcommand "schedule" to show details about schedules:
   - expected number of snapshots
   - expected disk usage, given a start value + daily changes
-
-bugs:
-
-- SIGBUS error!?
-
 - handle errors in RemoveAll (no write permission, what to do?)
