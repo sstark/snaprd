@@ -57,7 +57,8 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
 // For non-zero return values of rsync potentially restart the process if the
 // error was presumably volatile.
 func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
-    newSn := newIncompleteSnapshot()
+    cl := new(realClock)
+    newSn := newIncompleteSnapshot(cl)
     cmd := createRsyncCommand(newSn, base)
     err, done := runRsyncCommand(cmd)
     if err != nil {
@@ -83,7 +84,7 @@ func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
                 // Detect external signalling?
                 return nil, err
             }
-            newSn.transComplete()
+            newSn.transComplete(cl)
             log.Println("finished:", newSn.Name())
             return newSn, nil
         }

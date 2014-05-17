@@ -25,7 +25,8 @@ func Debugf(format string, args ...interface{}) {
 
 // FindDangling enqueues obsolete/purged snapshots into q.
 func FindDangling(q chan *Snapshot) {
-    snapshots, err := FindSnapshots()
+    cl := new(realClock)
+    snapshots, err := FindSnapshots(cl)
     if err != nil {
         log.Println(err)
     }
@@ -38,7 +39,8 @@ func FindDangling(q chan *Snapshot) {
 // LastGoodFromDisk lists the snapshots in the repository and returns a pointer
 // to the youngest complete snapshot.
 func LastGoodFromDisk() *Snapshot {
-    snapshots, err := FindSnapshots()
+    cl := new(realClock)
+    snapshots, err := FindSnapshots(cl)
     if err != nil {
         log.Println(err)
     }
@@ -53,7 +55,7 @@ func LastGoodFromDisk() *Snapshot {
 // created snapshot on its input channel and outputs it on the output channel,
 // but only after an appropriate waiting time. To start things off, the first
 // lastGood snapshot has to be read from disk.
-func LastGoodTicker(in, out chan *Snapshot) {
+func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
     var gap, wait time.Duration
     var sn *Snapshot
     sn = LastGoodFromDisk()
@@ -68,7 +70,7 @@ func LastGoodTicker(in, out chan *Snapshot) {
     for {
         sn := <-in
         if sn != nil {
-            gap = time.Now().Sub(sn.startTime)
+            gap = cl.Now().Sub(sn.startTime)
             Debugf("gap: %s", gap)
             wait = schedules[config.Schedule][0] - gap
             if wait > 0 {
@@ -101,7 +103,8 @@ func subcmdRun() (ferr error) {
     lastGoodIn := make(chan *Snapshot)
     lastGoodOut := make(chan *Snapshot)
 
-    go LastGoodTicker(lastGoodIn, lastGoodOut)
+    cl := new(realClock)
+    go LastGoodTicker(lastGoodIn, lastGoodOut, cl)
 
     // Snapshot creation loop
     go func() {
@@ -136,7 +139,7 @@ func subcmdRun() (ferr error) {
             }
             lastGoodIn <- sn
             Debugf("pruning")
-            prune(obsoleteQueue)
+            prune(obsoleteQueue, cl)
         }
     }()
     Debugf("started snapshot creation goroutine")
@@ -198,7 +201,8 @@ func subcmdRun() (ferr error) {
 // subcmdList give the user an overview of what's in the repository.
 func subcmdList() {
     intervals := schedules[config.Schedule]
-    snapshots, err := FindSnapshots()
+    cl := new(realClock)
+    snapshots, err := FindSnapshots(cl)
     if err != nil {
         log.Println(err)
     }
@@ -209,7 +213,7 @@ func subcmdList() {
         } else {
             snapshots = snapshots.state(STATE_COMPLETE, NONE)
         }
-        snapshots := snapshots.interval(intervals, n)
+        snapshots := snapshots.interval(intervals, n, cl)
         Debugf("snapshots in interval %d: %s", n, snapshots)
         if n < len(intervals)-2 {
             fmt.Printf("### From %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))

@@ -12,11 +12,11 @@ import (
 
 // Sieves snapshots according to schedule and marks them as obsolete. Also,
 // enqueue them in the buffered channel q for later reuse or deletion.
-func prune(q chan *Snapshot) {
+func prune(q chan *Snapshot, cl Clock) {
     intervals := schedules[config.Schedule]
     // interval 0 does not need pruning, start with 1
     for i := 1; i < len(intervals)-1; i++ {
-        snapshots, err := FindSnapshots()
+        snapshots, err := FindSnapshots(cl)
         if err != nil {
             log.Println(err)
             return
@@ -25,7 +25,7 @@ func prune(q chan *Snapshot) {
             log.Println("less than 2 snapshots found, not pruning")
             return
         }
-        iv := snapshots.interval(intervals, i).state(STATE_COMPLETE, STATE_OBSOLETE)
+        iv := snapshots.interval(intervals, i, cl).state(STATE_COMPLETE, STATE_OBSOLETE)
         pruneAgain := false
         if len(iv) > 2 {
             // prune highest interval by maximum number
@@ -49,7 +49,7 @@ func prune(q chan *Snapshot) {
                 pruneAgain = true
             }
             if pruneAgain {
-                prune(q)
+                prune(q, cl)
             }
         }
     }

@@ -52,8 +52,8 @@ func newSnapshot(startTime, endTime time.Time, state SnapshotState) *Snapshot {
     return &Snapshot{startTime, endTime, state}
 }
 
-func newIncompleteSnapshot() *Snapshot {
-    return &Snapshot{time.Now(), time.Time{}, STATE_INCOMPLETE}
+func newIncompleteSnapshot(cl Clock) *Snapshot {
+    return &Snapshot{cl.Now(), time.Time{}, STATE_INCOMPLETE}
 }
 
 func (s *Snapshot) String() string {
@@ -113,9 +113,9 @@ func tryLink(target string) {
 }
 
 // transComplete transitions the receiver to complete state.
-func (s *Snapshot) transComplete() {
+func (s *Snapshot) transComplete(cl Clock) {
     oldName := s.FullName()
-    etime := time.Now()
+    etime := cl.Now()
     if etime.Before(s.startTime) {
         log.Fatal("endTime before startTime!")
     }
@@ -234,7 +234,7 @@ func (sl SnapshotListByStartTime) Less(i, j int) bool {
 
 // FindSnapshots() reads the repository directory and returns a list of
 // Snapshot pointers for all valid snapshots it could find.
-func FindSnapshots() (SnapshotList, error) {
+func FindSnapshots(cl Clock) (SnapshotList, error) {
     snapshots := make(SnapshotList, 0, 256)
     dataPath := filepath.Join(config.repository, DATA_SUBDIR, "")
     files, err := ioutil.ReadDir(dataPath)
@@ -250,7 +250,7 @@ func FindSnapshots() (SnapshotList, error) {
             log.Println(err)
             continue
         }
-        if stime.After(time.Now()) {
+        if stime.After(cl.Now()) {
             log.Println("ignoring snapshot with startTime in future:", f.Name())
             continue
         }
@@ -273,8 +273,8 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
 }
 
 // Return a list of snapshots within the given interval.
-func (sl SnapshotList) interval(intervals intervalList, i int) SnapshotList {
-    t := time.Now()
+func (sl SnapshotList) interval(intervals intervalList, i int, cl Clock) SnapshotList {
+    t := cl.Now()
     from := t.Add(-intervals.offset(i + 1))
     to := t.Add(-intervals.offset(i))
     return sl.period(from, to)
