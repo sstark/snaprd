@@ -11,11 +11,11 @@ import (
 )
 
 const (
-    startAt int64 = 1400337722
-    prunedSn = "1400337706-1400337707 Obsolete"
+    startAt  int64 = 1400337722
+    prunedSn       = "1400337706-1400337707 Obsolete"
 )
 
-var mockSnapshots = []string {
+var mockSnapshots = []string{
     "1400337531-1400337532-complete",
     "1400337611-1400337612-complete",
     "1400337651-1400337652-complete",
