@@ -88,3 +88,58 @@ func TestLastGood(t *testing.T) {
         t.Errorf("lastGood() found %v, should be %v", s, lastGood)
     }
 }
+
+type snStateTestPair struct {
+    include SnapshotState
+    exclude SnapshotState
+    sl *SnapshotList
+}
+
+func TestSnapshotState(t *testing.T) {
+    slIn := &SnapshotList{
+        {time.Unix(1400337531, 0), time.Unix(1400337532, 0), STATE_COMPLETE},
+        {time.Unix(1400337611, 0), time.Unix(1400337612, 0), STATE_COMPLETE},
+        {time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+        {time.Unix(1400337671, 0), time.Unix(1400337672, 0), STATE_COMPLETE},
+        {time.Unix(1400337691, 0), time.Unix(1400337692, 0), STATE_COMPLETE},
+        {time.Unix(1400337706, 0), time.Unix(1400337707, 0), STATE_COMPLETE},
+        {time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
+        {time.Unix(1400337716, 0), time.Unix(1400337717, 0), STATE_COMPLETE},
+        {time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_INCOMPLETE},
+    }
+    tests := []snStateTestPair{
+        {
+            STATE_PURGING, 0, &SnapshotList{
+                &Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+            },
+        },
+        {
+            STATE_PURGING+STATE_OBSOLETE, 0, &SnapshotList{
+                &Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+                &Snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
+            },
+        },
+        {
+            ANY, STATE_COMPLETE, &SnapshotList{
+                &Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+                &Snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
+                &Snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_INCOMPLETE},
+            },
+        },
+    }
+    for _, pair := range tests {
+        slOut := slIn.state(pair.include, pair.exclude)
+        lslOut, lslWant := len(slOut), len(*pair.sl)
+        if lslOut != lslWant {
+            t.Errorf("state() delivered %v items, should be %v", lslOut, lslWant)
+            // fail whole test to avoid out of range errors later
+            t.FailNow()
+        }
+        for i := range slOut {
+            sOut, sWant := slOut[i].String(), (*pair.sl)[i].String()
+            if sOut != sWant {
+                t.Errorf("state() found %v, should be %v", sOut, sWant)
+            }
+        }
+    }
+}
