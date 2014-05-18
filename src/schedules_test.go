@@ -7,11 +7,11 @@ import (
 )
 
 var testSchedules = scheduleList{
-    "testSched1": {second, second*2, second*4, second*8, second*16, long},
+    "testSched1": {second, second * 2, second * 4, second * 8, second * 16, long},
 }
 
 type offsetTestPair struct {
-    i int
+    i       int
     seconds int64
 }
 
@@ -33,7 +33,7 @@ func TestScheduleOffset(t *testing.T) {
 }
 
 type goalTestPair struct {
-    i int
+    i    int
     goal int
 }
 

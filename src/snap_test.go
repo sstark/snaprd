@@ -11,9 +11,9 @@ import (
 )
 
 const (
-    sdate int64 = 1400268377
-    edate int64 = 1400268387
-    lastGood = "1400337721-1400337722 Complete"
+    sdate    int64 = 1400268377
+    edate    int64 = 1400268387
+    lastGood       = "1400337721-1400337722 Complete"
 )
 
 func TestNewSnapshot(t *testing.T) {
@@ -43,7 +43,7 @@ func mockRepositoryDangling() {
 }
 
 type danglingTestPair struct {
-    i int
+    i   int
     snS string
 }
 
@@ -92,7 +92,7 @@ func TestLastGood(t *testing.T) {
 type snStateTestPair struct {
     include SnapshotState
     exclude SnapshotState
-    sl *SnapshotList
+    sl      *SnapshotList
 }
 
 func TestSnapshotState(t *testing.T) {
@@ -114,7 +114,7 @@ func TestSnapshotState(t *testing.T) {
             },
         },
         {
-            STATE_PURGING+STATE_OBSOLETE, 0, &SnapshotList{
+            STATE_PURGING + STATE_OBSOLETE, 0, &SnapshotList{
                 &Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
                 &Snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
             },
