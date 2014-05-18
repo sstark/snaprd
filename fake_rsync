@@ -1,0 +1,49 @@
+#!/bin/zsh
+
+myName=${0:t}
+
+TRAPTERM() {
+    print -u2 -- "$myName: got sigterm"
+    exit
+}
+
+TRAPINT() {
+    print -u2 -- "$myName: got sigint, sleeping 2s"
+    sleep 2
+    print "...done"
+    exit
+}
+
+#print -- "$myName opts: $*"
+zparseopts -K -D -E -- a=ignore -stats=ignore v=ignore -link-dest:=p_linkdest -fake_stdout=p_sout -fake_stderr=p_serr -fake_exit:=p_exit -fake_sleep:=p_sleep h=help
+
+if [[ $#help > 0 || $# == 0 ]]; then
+    print "usage: $myName [--link-dest=LINKPATH] [--fake_stdout] [--fake_stderr] [--fake_exit=RET] [--fake_sleep=SECONDS] FROMPATH TOPATH"
+    print "    LINKPATH     path that rsync would use as hardlink base"
+    print "    FROMPATH     source path for rsync"
+    print "    TOPATH       destination path for rsync (will actually be created as empty dir)"
+    print "    RET          will return with this exit value"
+    print "    SECONDS      will sleep that long each iteration"
+    print "  --fake_stdout  will print something to stdout each iteration"
+    print "  --fake_stderr  will print something to stderr each iteration"
+    print "  -a|-v|--stats  these options are explicitly ignored"
+    exit 0
+fi
+
+linkdest=${p_linkdest[2]#=}
+retval=${p_exit[2]#=}
+sleep=${p_sleep[2]#=}
+
+for ((n=0; n<3; n++)); do
+    if ((#p_serr)) {
+        print "$myName $n (stderr): fake rsync stderr"
+    }
+    if ((#p_sout)) {
+        print "$myName $n (stdout): (from:$1 to:$2 sleep=$sleep linkdest:$linkdest)"
+    }
+    sleep ${sleep:-0}
+done
+
+mkdir $2
+
+exit $retval
