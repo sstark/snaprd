@@ -143,3 +143,49 @@ func TestSnapshotState(t *testing.T) {
         }
     }
 }
+
+//func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
+
+type snParseTestPair struct {
+    in  string
+    out *Snapshot
+}
+
+func TestParseSnapshotName(t *testing.T) {
+    testsGood := []snParseTestPair{
+        {
+            "1400337531-1400337532-complete",
+            &Snapshot{time.Unix(1400337531, 0), time.Unix(1400337532, 0), STATE_COMPLETE},
+        },
+        {
+            "1400337651-1400337652-purging",
+            &Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+        },
+        {
+            "1400337721-1400337722-obsolete",
+            &Snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_OBSOLETE},
+        },
+    }
+    for _, pair := range testsGood {
+        stime, etime, state, err := parseSnapshotName(pair.in)
+        sOut := &Snapshot{stime, etime, state}
+        if err != nil {
+            t.Errorf("parseSnapshotName(%v) gave error %v", pair.in, err)
+        }
+        if sOut.String() != pair.out.String() {
+            t.Errorf("parseSnapshotName(%v) gave %v, should be %v", pair.in, sOut, pair.out)
+        }
+    }
+    testsBad := []string{
+        "1400337531-1400337532-completeXXX",
+        "-1400337652-purging",
+        "1400337721-1400337722-incomplete",
+        "1400337721.0-1400337722-incomplete",
+    }
+    for _, s := range testsBad {
+        _, _, _, err := parseSnapshotName(s)
+        if err == nil {
+            t.Errorf("parseSnapshotName(%v) did not fail, but it should", s)
+        }
+    }
+}
