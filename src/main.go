@@ -23,34 +23,6 @@ func Debugf(format string, args ...interface{}) {
     }
 }
 
-// FindDangling enqueues obsolete/purged snapshots into q.
-func FindDangling(q chan *Snapshot) {
-    cl := new(realClock)
-    snapshots, err := FindSnapshots(cl)
-    if err != nil {
-        log.Println(err)
-    }
-    for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
-        Debugf("found dangling snapshot: %s", sn)
-        q <- sn
-    }
-}
-
-// LastGoodFromDisk lists the snapshots in the repository and returns a pointer
-// to the youngest complete snapshot.
-func LastGoodFromDisk() *Snapshot {
-    cl := new(realClock)
-    snapshots, err := FindSnapshots(cl)
-    if err != nil {
-        log.Println(err)
-    }
-    sn := snapshots.state(STATE_COMPLETE, NONE).lastGood()
-    if sn == nil {
-        log.Println("lastgood: could not find suitable base snapshot")
-    }
-    return sn
-}
-
 // The LastGoodTicker is the clock for the create loop. It takes the last
 // created snapshot on its input channel and outputs it on the output channel,
 // but only after an appropriate waiting time. To start things off, the first
@@ -58,7 +30,7 @@ func LastGoodFromDisk() *Snapshot {
 func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
     var gap, wait time.Duration
     var sn *Snapshot
-    sn = LastGoodFromDisk()
+    sn = LastGoodFromDisk(cl)
     if sn != nil {
         Debugf("lastgood from disk: %s\n", sn.String())
     }
@@ -147,7 +119,7 @@ func subcmdRun() (ferr error) {
     // Usually the purger gets its input from the obsoleteQueue. But there
     // could be snapshots left behind from a previously failed snaprd run, so
     // we fill the obsoleteQueue once at the beginning.
-    FindDangling(obsoleteQueue)
+    FindDangling(obsoleteQueue, cl)
 
     // Purger loop
     go func() {

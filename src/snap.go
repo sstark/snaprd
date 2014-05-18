@@ -291,3 +291,29 @@ func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
     }
     return slNew
 }
+
+// FindDangling enqueues obsolete/purged snapshots into q.
+func FindDangling(q chan *Snapshot, cl Clock) {
+    snapshots, err := FindSnapshots(cl)
+    if err != nil {
+        log.Println(err)
+    }
+    for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
+        Debugf("found dangling snapshot: %s", sn)
+        q <- sn
+    }
+}
+
+// LastGoodFromDisk lists the snapshots in the repository and returns a pointer
+// to the youngest complete snapshot.
+func LastGoodFromDisk(cl Clock) *Snapshot {
+    snapshots, err := FindSnapshots(cl)
+    if err != nil {
+        log.Println(err)
+    }
+    sn := snapshots.state(STATE_COMPLETE, NONE).lastGood()
+    if sn == nil {
+        log.Println("lastgood: could not find suitable base snapshot")
+    }
+    return sn
+}
