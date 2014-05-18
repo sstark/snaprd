@@ -13,7 +13,6 @@ import (
 
 const (
     startAt  int64 = 1400337722
-    prunedSn       = "1400337706-1400337707 Obsolete"
 )
 
 var mockSnapshots = []string{
@@ -64,23 +63,63 @@ func mockRepository() {
     }
 }
 
+func assertSnapshotChanLen(t *testing.T, c chan *Snapshot, want int) {
+    if got := len(c); got != want {
+        t.Errorf("channel %v contains %v snapshots, wanted %v", c, got, want)
+    }
+}
+
+func assertSnapshotChanItem(t *testing.T, c chan *Snapshot, want string) {
+    if got := <-c; got.String() != want {
+        t.Errorf("prune() obsoleted %v, wanted %v", got.String(), want)
+    }
+}
+
+type pruneTestPair struct {
+    iteration time.Duration
+    obsoleted []string
+}
+
 func TestPrune(t *testing.T) {
     log.SetOutput(ioutil.Discard)
     mockConfig()
     mockRepository()
     defer os.RemoveAll(config.repository)
-    // A clock from the time the last snapshot in the
-    // mock repository was created
     cl := newSkewClock(startAt)
     c := make(chan *Snapshot, 100)
-    prune(c, cl)
-    if len(c) > 0 {
-        t.Errorf("prune() obsoleted %v, channel should be empty", <-c)
+
+    tests := []pruneTestPair{
+        { 0,
+            []string{},
+        },
+        { schedules[config.Schedule][0],
+            []string{
+                "1400337706-1400337707 Obsolete",
+            },
+        },
+        { schedules[config.Schedule][0] * 10,
+            []string{
+                "1400337716-1400337717 Obsolete",
+                "1400337711-1400337712 Obsolete",
+                "1400337691-1400337692 Obsolete",
+            },
+        },
+        { schedules[config.Schedule][0] * 20,
+            []string{
+                "1400337531-1400337532 Obsolete",
+                "1400337721-1400337722 Obsolete",
+                "1400337611-1400337612 Obsolete",
+                "1400337671-1400337672 Obsolete",
+            },
+        },
     }
-    // fast forward the time by one snapshot
-    cl.forward(schedules[config.Schedule][0])
-    prune(c, cl)
-    if s := <-c; s.String() != prunedSn {
-        t.Errorf("prune() obsoleted %v, wanted %v", s, prunedSn)
+
+    for _, pair := range tests {
+        cl.forward(pair.iteration)
+        prune(c, cl)
+        assertSnapshotChanLen(t, c, len(pair.obsoleted))
+        for _, snS := range pair.obsoleted {
+            assertSnapshotChanItem(t, c, snS)
+        }
     }
 }
