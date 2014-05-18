@@ -13,6 +13,7 @@ import (
 const (
     sdate int64 = 1400268377
     edate int64 = 1400268387
+    lastGood = "1400337721-1400337722 Complete"
 )
 
 func TestNewSnapshot(t *testing.T) {
@@ -65,5 +66,25 @@ func TestFindDangling(t *testing.T) {
         if s := sl[pair.i].String(); s != pair.snS {
             t.Errorf("FindDangling found %v, should be %v", s, pair.snS)
         }
+    }
+}
+
+func TestLastGood(t *testing.T) {
+    mockConfig()
+    mockRepositoryDangling()
+    defer os.RemoveAll(config.repository)
+    cl := newSkewClock(startAt)
+
+    sl, _ := FindSnapshots(cl)
+    if s := sl.lastGood().String(); s != lastGood {
+        t.Errorf("lastGood() found %v, should be %v", s, lastGood)
+    }
+    // Advance to next snapshot the is not (yet) complete, see if this is
+    // omitted as it should
+    os.Mkdir(filepath.Join(config.repository, DATA_SUBDIR, "1400337727-0-incomplete"), 0777)
+    cl.skew -= schedules["testing2"][0]
+    sl, _ = FindSnapshots(cl)
+    if s := sl.lastGood().String(); s != lastGood {
+        t.Errorf("lastGood() found %v, should be %v", s, lastGood)
     }
 }
