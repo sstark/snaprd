@@ -217,6 +217,9 @@ func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
     if state == 0 {
         return time.Unix(stime, 0), time.Unix(etime, 0), state, errors.New("could not parse state: " + s)
     }
+    if state == STATE_INCOMPLETE && etime != 0 {
+        return zero, zero, 0, errors.New("incomplete state but non-zero end time: " + s)
+    }
     return time.Unix(stime, 0), time.Unix(etime, 0), state, nil
 }
 
