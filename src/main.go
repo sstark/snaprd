@@ -116,10 +116,12 @@ func subcmdRun() (ferr error) {
     }()
     Debugf("started snapshot creation goroutine")
 
-    // Usually the purger gets its input from the obsoleteQueue. But there
+    // Usually the purger gets its input only from prune(). But there
     // could be snapshots left behind from a previously failed snaprd run, so
     // we fill the obsoleteQueue once at the beginning.
-    FindDangling(obsoleteQueue, cl)
+    for _, sn := range FindDangling(cl) {
+        obsoleteQueue <- sn
+    }
 
     // Purger loop
     go func() {

@@ -292,16 +292,18 @@ func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
     return slNew
 }
 
-// FindDangling enqueues obsolete/purged snapshots into q.
-func FindDangling(q chan *Snapshot, cl Clock) {
+// FindDangling returns a list of obsolete or purged snapshots.
+func FindDangling(cl Clock) SnapshotList {
     snapshots, err := FindSnapshots(cl)
     if err != nil {
         log.Println(err)
     }
+    slNew := make(SnapshotList, 0, len(snapshots))
     for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
         Debugf("found dangling snapshot: %s", sn)
-        q <- sn
+        slNew = append(slNew, sn)
     }
+    return slNew
 }
 
 // LastGoodFromDisk lists the snapshots in the repository and returns a pointer
