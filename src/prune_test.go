@@ -4,6 +4,7 @@ package main
 
 import (
     "io/ioutil"
+    "log"
     "os"
     "path/filepath"
     "testing"
@@ -60,6 +61,7 @@ func mockRepository() {
 }
 
 func TestPrune(t *testing.T) {
+    log.SetOutput(ioutil.Discard)
     mockConfig()
     mockRepository()
     defer os.RemoveAll(config.repository)
