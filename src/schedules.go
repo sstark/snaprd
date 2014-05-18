@@ -33,6 +33,9 @@ func (il intervalList) offset(i int) time.Duration {
 
 // Returns how many snapshots are the goal in the given interval
 func (il intervalList) goal(i int) int {
+    if i > len(il)-2 {
+        panic("this should not happen: highest interval is innumerable!")
+    }
     return int(il[i+1] / il[i])
 }
 
