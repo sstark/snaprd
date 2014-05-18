@@ -18,3 +18,4 @@
 - handle errors in RemoveAll (no write permission, what to do?)
 - in case of restarting snaprd after a long time it will remove too many snapshots
   - handle that case in prune()
+- avoid passing pointers through channels (minimize possibility of data races)
