@@ -41,6 +41,10 @@ func newSkewClock(i int64) *skewClock {
     return &skewClock{skew: d}
 }
 
+func (cl *skewClock) forward(d time.Duration) {
+    cl.skew -= d
+}
+
 func mockConfig() {
     tmpRepository, err := ioutil.TempDir("", "snaprd_testing")
     if err != nil {
@@ -74,7 +78,7 @@ func TestPrune(t *testing.T) {
         t.Errorf("prune() obsoleted %v, channel should be empty", <-c)
     }
     // fast forward the time by one snapshot
-    cl.skew -= schedules[config.Schedule][0]
+    cl.forward(schedules[config.Schedule][0])
     prune(c, cl)
     if s := <-c; s.String() != prunedSn {
         t.Errorf("prune() obsoleted %v, wanted %v", s, prunedSn)
