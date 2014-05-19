@@ -19,3 +19,5 @@
 - in case of restarting snaprd after a long time it will remove too many snapshots
   - handle that case in prune()
 - avoid passing pointers through channels (minimize possibility of data races)
+- Read http://golang.org/ref/spec#Receive_operator again and rethink subcmdRun()
+  design. Use close(c) when appropriate.
