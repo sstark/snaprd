@@ -64,7 +64,7 @@ func subcmdRun() (ferr error) {
         time.Sleep(time.Second * 30)
     }
     createExit := make(chan bool)
-    createExitDone := make(chan bool)
+    createExitDone := make(chan error)
     purgeExit := make(chan bool)
     purgeExitDone := make(chan bool)
     // The obsoleteQueue should not be larger than the absolute number of
@@ -81,6 +81,7 @@ func subcmdRun() (ferr error) {
     go func() {
         var lastGood *Snapshot
         var breakLoop bool
+        var createError error
         for {
             select {
             case <-createExit:
@@ -90,7 +91,7 @@ func subcmdRun() (ferr error) {
             }
             if breakLoop {
                 Debugf("breaking loop")
-                createExitDone <- true
+                createExitDone <- createError
                 return
             }
             sn, err := CreateSnapshot(lastGood)
@@ -106,7 +107,7 @@ func subcmdRun() (ferr error) {
                     createExit <- true
                     return
                 }()
-                ferr = err
+                createError = err
             }
             lastGoodIn <- sn
             Debugf("pruning")
@@ -148,14 +149,13 @@ func subcmdRun() (ferr error) {
         switch sig {
         case syscall.SIGINT, syscall.SIGTERM:
             log.Println("-> Immediate exit")
-            ferr = nil
         case syscall.SIGUSR1:
             log.Println("-> Graceful exit")
             if createExit != nil {
                 createExit <- true
             }
             if createExitDone != nil {
-                <-createExitDone
+                ferr = <-createExitDone
             }
             if purgeExit != nil {
                 purgeExit <- true
@@ -163,9 +163,8 @@ func subcmdRun() (ferr error) {
             if purgeExitDone != nil {
                 <-purgeExitDone
             }
-            ferr = nil
         }
-    case <-createExitDone:
+    case ferr = <-createExitDone:
     }
     return
 }
