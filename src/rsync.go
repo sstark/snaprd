@@ -9,6 +9,7 @@ import (
     "log"
     "os"
     "os/exec"
+    "os/signal"
     "path/filepath"
     "syscall"
 )
@@ -52,11 +53,10 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
 }
 
 // CreateSnapshot starts a potentially long running rsync command and returns a
-// Snapshot pointer on success. If something is sent on the kill channel the
-// rsync process will be sent a SIGTERM signal.
+// Snapshot pointer on success.
 // For non-zero return values of rsync potentially restart the process if the
 // error was presumably volatile.
-func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
+func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
     cl := new(realClock)
     newSn := newIncompleteSnapshot(cl)
     cmd := createRsyncCommand(newSn, base)
@@ -65,11 +65,13 @@ func CreateSnapshot(base *Snapshot, kill chan bool) (*Snapshot, error) {
         log.Fatalln("could not start rsync command:", err)
     }
     Debugf("rsync started")
+    sigc := make(chan os.Signal, 1)
+    signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
     for {
         select {
-        case <-kill:
-            Debugf("trying to kill rsync")
-            err := cmd.Process.Signal(syscall.SIGTERM)
+        case sig := <-sigc:
+            Debugf("trying to kill rsync with signal %v", sig)
+            err := cmd.Process.Signal(sig)
             if err != nil {
                 log.Fatal("failed to kill: ", err)
             }

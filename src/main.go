@@ -67,7 +67,6 @@ func subcmdRun() (ferr error) {
     createExitDone := make(chan bool)
     purgeExit := make(chan bool)
     purgeExitDone := make(chan bool)
-    killRsync := make(chan bool, 1)
     // The obsoleteQueue should not be larger than the absolute number of
     // expected snapshots. However, there is no way (yet) to calculate that
     // number.
@@ -94,7 +93,7 @@ func subcmdRun() (ferr error) {
                 createExitDone <- true
                 return
             }
-            sn, err := CreateSnapshot(lastGood, killRsync)
+            sn, err := CreateSnapshot(lastGood)
             if err != nil || sn == nil {
                 Debugf("snapshot creation finally failed (%s), exit loop", err)
                 breakLoop = true
@@ -149,7 +148,6 @@ func subcmdRun() (ferr error) {
         switch sig {
         case syscall.SIGINT, syscall.SIGTERM:
             log.Println("-> Immediate exit")
-            killRsync <- true
             ferr = nil
         case syscall.SIGUSR1:
             log.Println("-> Graceful exit")
