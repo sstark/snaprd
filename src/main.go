@@ -65,8 +65,6 @@ func subcmdRun() (ferr error) {
     }
     createExit := make(chan bool)
     createExitDone := make(chan error)
-    purgeExit := make(chan bool)
-    purgeExitDone := make(chan bool)
     // The obsoleteQueue should not be larger than the absolute number of
     // expected snapshots. However, there is no way (yet) to calculate that
     // number.
@@ -80,39 +78,28 @@ func subcmdRun() (ferr error) {
     // Snapshot creation loop
     go func() {
         var lastGood *Snapshot
-        var breakLoop bool
         var createError error
+    CREATE_LOOP:
         for {
             select {
             case <-createExit:
                 Debugf("gracefully exiting snapshot creation goroutine")
-                breakLoop = true
+                lastGoodOut = nil
+                break CREATE_LOOP
             case lastGood = <-lastGoodOut:
+                sn, err := CreateSnapshot(lastGood)
+                if err != nil || sn == nil {
+                    Debugf("snapshot creation finally failed (%s), exit loop", err)
+                    createError = err
+                    go func() { createExit <- true; return }()
+                } else {
+                    lastGoodIn <- sn
+                    Debugf("pruning")
+                    prune(obsoleteQueue, cl)
+                }
             }
-            if breakLoop {
-                Debugf("breaking loop")
-                createExitDone <- createError
-                return
-            }
-            sn, err := CreateSnapshot(lastGood)
-            if err != nil || sn == nil {
-                Debugf("snapshot creation finally failed (%s), exit loop", err)
-                breakLoop = true
-                Debugf("killing purger")
-                purgeExit <- true
-                purgeExit = nil
-                <-purgeExitDone
-                purgeExitDone = nil
-                go func() {
-                    createExit <- true
-                    return
-                }()
-                createError = err
-            }
-            lastGoodIn <- sn
-            Debugf("pruning")
-            prune(obsoleteQueue, cl)
         }
+        createExitDone <- createError
     }()
     Debugf("started snapshot creation goroutine")
 
@@ -126,15 +113,8 @@ func subcmdRun() (ferr error) {
     // Purger loop
     go func() {
         for {
-            select {
-            case <-purgeExit:
-                Debugf("gracefully exiting purge goroutine")
-                purgeExitDone <- true
-                return
-            case sn := <-obsoleteQueue:
-                if !config.NoPurge {
-                    sn.purge()
-                }
+            if sn := <-obsoleteQueue; !config.NoPurge {
+                sn.purge()
             }
         }
     }()
@@ -151,18 +131,8 @@ func subcmdRun() (ferr error) {
             log.Println("-> Immediate exit")
         case syscall.SIGUSR1:
             log.Println("-> Graceful exit")
-            if createExit != nil {
-                createExit <- true
-            }
-            if createExitDone != nil {
-                ferr = <-createExitDone
-            }
-            if purgeExit != nil {
-                purgeExit <- true
-            }
-            if purgeExitDone != nil {
-                <-purgeExitDone
-            }
+            createExit <- true
+            ferr = <-createExitDone
         }
     case ferr = <-createExitDone:
     }
