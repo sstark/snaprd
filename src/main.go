@@ -190,6 +190,10 @@ func main() {
     if config == nil {
         log.Fatal("no config, don't know what to do!")
     }
+    if config.NoLogDate {
+        log.SetFlags(logger.Flags() - log.Ldate - log.Ltime)
+        logger.SetFlags(logger.Flags() - log.Ldate - log.Ltime)
+    }
     switch subcmd {
     case "run":
         log.Printf("%s started with pid %d\n", myName, os.Getpid())

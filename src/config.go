@@ -46,6 +46,7 @@ type Config struct {
     MaxKeep    int
     NoPurge    bool
     NoWait     bool
+    NoLogDate  bool
 }
 
 // WriteCache writes the global configuration to disk as a json file.
@@ -138,6 +139,9 @@ func LoadConfig() *Config {
             flags.BoolVar(&(config.NoWait),
                 "noWait", false,
                 "if set, skip the initial waiting time before the first snapshot")
+            flags.BoolVar(&(config.NoLogDate),
+                "noLogDate", false,
+                "if set, does not print date and time in the log output. Useful if output is redirected to syslog")
             flags.Parse(os.Args[2:])
             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
