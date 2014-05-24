@@ -16,10 +16,11 @@ import (
 )
 
 var config *Config
+var logger *log.Logger
 
 func Debugf(format string, args ...interface{}) {
     if os.Getenv("SNAPRD_DEBUG") == "1" {
-        log.Printf("<DEBUG> "+format, args...)
+        logger.Output(2, "<DEBUG> "+fmt.Sprintf(format, args...))
     }
 }
 
@@ -184,7 +185,7 @@ func subcmdList() {
 }
 
 func main() {
-    log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+    logger = log.New(os.Stderr, "", log.Ldate | log.Ltime | log.Lshortfile)
     config = LoadConfig()
     if config == nil {
         log.Fatal("no config, don't know what to do!")
