@@ -185,7 +185,7 @@ func subcmdList() {
 }
 
 func main() {
-    logger = log.New(os.Stderr, "", log.Ldate | log.Ltime | log.Lshortfile)
+    logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
     config = LoadConfig()
     if config == nil {
         log.Fatal("no config, don't know what to do!")

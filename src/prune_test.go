@@ -12,7 +12,7 @@ import (
 )
 
 const (
-    startAt  int64 = 1400337722
+    startAt int64 = 1400337722
 )
 
 var mockSnapshots = []string{
@@ -89,22 +89,22 @@ func TestPrune(t *testing.T) {
     c := make(chan *Snapshot, 100)
 
     tests := []pruneTestPair{
-        { 0,
+        {0,
             []string{},
         },
-        { schedules[config.Schedule][0],
+        {schedules[config.Schedule][0],
             []string{
                 "1400337706-1400337707 Obsolete",
             },
         },
-        { schedules[config.Schedule][0] * 10,
+        {schedules[config.Schedule][0] * 10,
             []string{
                 "1400337716-1400337717 Obsolete",
                 "1400337711-1400337712 Obsolete",
                 "1400337691-1400337692 Obsolete",
             },
         },
-        { schedules[config.Schedule][0] * 20,
+        {schedules[config.Schedule][0] * 20,
             []string{
                 "1400337531-1400337532 Obsolete",
                 "1400337721-1400337722 Obsolete",
