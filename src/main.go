@@ -6,6 +6,7 @@
 package main
 
 import (
+    "errors"
     "fmt"
     "log"
     "os"
@@ -62,7 +63,13 @@ func subcmdRun() (ferr error) {
     pl.Lock()
     defer pl.Unlock()
     if !config.NoWait {
-        time.Sleep(time.Second * 30)
+        sigc := make(chan os.Signal, 1)
+        signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+        select {
+        case <-sigc:
+            return errors.New("-> Early exit")
+        case <-time.After(time.Second * 30):
+        }
     }
     createExit := make(chan bool)
     createExitDone := make(chan error)
