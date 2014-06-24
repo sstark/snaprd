@@ -7,6 +7,9 @@ package main
 import (
     "strings"
     "time"
+    "encoding/json"
+    "io/ioutil"
+    "fmt"
 )
 
 const (
@@ -57,4 +60,22 @@ var schedules = scheduleList{
     "shortterm": {minute * 10, hour * 2, day, week, month, long},
     "testing":   {second * 5, second * 20, second * 140, second * 280, long},
     "testing2":  {second * 5, second * 20, second * 40, second * 80, long},
+}
+
+func (schl *scheduleList) AddFromFile(file string) {
+    schedFile, err := ioutil.ReadFile(file)
+    if err != nil {
+        fmt.Printf("Error opening schedule file: %v\n", err)
+    }
+    
+    var readData scheduleList
+
+    err = json.Unmarshal(schedFile,&readData)
+    if err != nil {
+        fmt.Printf("Error parsing data: %v\n", err)
+    }
+    
+    for k,v := range readData {
+        schedules[k] = v
+    }   
 }
