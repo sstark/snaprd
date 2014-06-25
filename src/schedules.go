@@ -62,7 +62,7 @@ var schedules = scheduleList{
     "testing2":  {second * 5, second * 20, second * 40, second * 80, long},
 }
 
-func (schl *scheduleList) AddFromFile(file string) {
+func (schl scheduleList) AddFromFile(file string) {
     schedFile, err := ioutil.ReadFile(file)
     if err != nil {
         fmt.Printf("Error opening schedule file: %v\n", err)
@@ -76,6 +76,12 @@ func (schl *scheduleList) AddFromFile(file string) {
     }
     
     for k,v := range readData {
-        schedules[k] = v
+        schl[k] = v
     }   
+}
+
+func (schl scheduleList) List() {
+    for name,sched := range schl {
+        fmt.Println(name,": ", sched);
+    }
 }

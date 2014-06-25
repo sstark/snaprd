@@ -47,6 +47,7 @@ type Config struct {
     NoPurge    bool
     NoWait     bool
     NoLogDate  bool
+    SchedFile  string
 }
 
 // WriteCache writes the global configuration to disk as a json file.
@@ -78,6 +79,10 @@ func (c *Config) ReadCache() error {
         }
         c.RsyncPath = t.RsyncPath
         c.RsyncOpts = t.RsyncOpts
+        if t.SchedFile != "" {
+                c.SchedFile = t.SchedFile
+	        schedules.AddFromFile(c.SchedFile)
+        }
         c.Origin = t.Origin
         if _, ok := schedules[t.Schedule]; ok == false {
             log.Fatalln("no such schedule:", t.Schedule)
@@ -96,6 +101,7 @@ func usage() {
 Commands:
     run     Periodically create snapshots
     list    List snapshots
+    scheds  List schedules
     help    Show usage instructions
 Use <command> -h to show possible options for <command>.
 Examples:
@@ -142,8 +148,14 @@ func LoadConfig() *Config {
             flags.BoolVar(&(config.NoLogDate),
                 "noLogDate", false,
                 "if set, does not print date and time in the log output. Useful if output is redirected to syslog")
-            flags.Parse(os.Args[2:])
-            if _, ok := schedules[config.Schedule]; ok == false {
+            flags.StringVar(&(config.SchedFile),
+                "schedFile", "",
+                "path to rsync binary")
+             flags.Parse(os.Args[2:])
+            if config.SchedFile != "" {
+	        schedules.AddFromFile(config.SchedFile)
+            }
+             if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
             }
             path := filepath.Join(config.repository, DATA_SUBDIR)
@@ -173,8 +185,14 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.Schedule),
                 "schedule", "longterm",
                 "one of "+schedules.String())
-            flags.Parse(os.Args[2:])
-            err := config.ReadCache()
+            flags.StringVar(&(config.SchedFile),
+                "schedFile", "",
+                "path to rsync binary")
+             flags.Parse(os.Args[2:])
+            if config.SchedFile != "" {
+	        schedules.AddFromFile(config.SchedFile)
+            }
+             err := config.ReadCache()
             if err != nil {
                 log.Println("error reading cached settings (using defaults):", err)
             }
@@ -185,6 +203,18 @@ func LoadConfig() *Config {
         {
             usage()
             os.Exit(0)
+        }
+    case "scheds":
+        {
+            flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
+            flags.StringVar(&(config.SchedFile),
+                "schedFile", "",
+                "path to rsync binary")
+            flags.Parse(os.Args[2:])
+            if config.SchedFile != "" {
+	        schedules.AddFromFile(config.SchedFile)
+            }
+            return config
         }
     default:
         {

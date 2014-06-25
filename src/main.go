@@ -193,7 +193,6 @@ func subcmdList() {
 
 func main() {
     logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
-    schedules.AddFromFile("/root/test.sched")
     config = LoadConfig()
     if config == nil {
         log.Fatal("no config, don't know what to do!")
@@ -214,6 +213,8 @@ func main() {
     case "list":
         fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdList()
+    case "scheds":
+        schedules.List()
     }
     os.Exit(0)
 }
