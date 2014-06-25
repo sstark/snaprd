@@ -18,6 +18,7 @@ import (
 
 const (
     myName      = "snaprd"
+    defaultSchedFileName = "/etc/"+myName+".schedules"
     DATA_SUBDIR = ".data"
 )
 
@@ -149,8 +150,8 @@ func LoadConfig() *Config {
                 "noLogDate", false,
                 "if set, does not print date and time in the log output. Useful if output is redirected to syslog")
             flags.StringVar(&(config.SchedFile),
-                "schedFile", "",
-                "path to rsync binary")
+                "schedFile", defaultSchedFileName,
+                "path to external schedules")
              flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
 	        schedules.AddFromFile(config.SchedFile)
@@ -186,8 +187,8 @@ func LoadConfig() *Config {
                 "schedule", "longterm",
                 "one of "+schedules.String())
             flags.StringVar(&(config.SchedFile),
-                "schedFile", "",
-                "path to rsync binary")
+                "schedFile", defaultSchedFileName,
+                "path to external schedules")
              flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
 	        schedules.AddFromFile(config.SchedFile)
@@ -208,8 +209,8 @@ func LoadConfig() *Config {
         {
             flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
             flags.StringVar(&(config.SchedFile),
-                "schedFile", "",
-                "path to rsync binary")
+                "schedFile", defaultSchedFileName,
+                "path to external schedules")
             flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
 	        schedules.AddFromFile(config.SchedFile)
