@@ -17,9 +17,9 @@ import (
 )
 
 const (
-    myName      = "snaprd"
-    defaultSchedFileName = "/etc/"+myName+".schedules"
-    DATA_SUBDIR = ".data"
+    myName               = "snaprd"
+    defaultSchedFileName = "/etc/" + myName + ".schedules"
+    DATA_SUBDIR          = ".data"
 )
 
 type Opts []string
@@ -81,8 +81,8 @@ func (c *Config) ReadCache() error {
         c.RsyncPath = t.RsyncPath
         c.RsyncOpts = t.RsyncOpts
         if t.SchedFile != "" {
-                c.SchedFile = t.SchedFile
-	        schedules.AddFromFile(c.SchedFile)
+            c.SchedFile = t.SchedFile
+            schedules.AddFromFile(c.SchedFile)
         }
         c.Origin = t.Origin
         if _, ok := schedules[t.Schedule]; ok == false {
@@ -152,11 +152,11 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.SchedFile),
                 "schedFile", defaultSchedFileName,
                 "path to external schedules")
-             flags.Parse(os.Args[2:])
+            flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
-	        schedules.AddFromFile(config.SchedFile)
+                schedules.AddFromFile(config.SchedFile)
             }
-             if _, ok := schedules[config.Schedule]; ok == false {
+            if _, ok := schedules[config.Schedule]; ok == false {
                 log.Fatalln("no such schedule:", config.Schedule)
             }
             path := filepath.Join(config.repository, DATA_SUBDIR)
@@ -189,11 +189,11 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.SchedFile),
                 "schedFile", defaultSchedFileName,
                 "path to external schedules")
-             flags.Parse(os.Args[2:])
+            flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
-	        schedules.AddFromFile(config.SchedFile)
+                schedules.AddFromFile(config.SchedFile)
             }
-             err := config.ReadCache()
+            err := config.ReadCache()
             if err != nil {
                 log.Println("error reading cached settings (using defaults):", err)
             }
@@ -213,7 +213,7 @@ func LoadConfig() *Config {
                 "path to external schedules")
             flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
-	        schedules.AddFromFile(config.SchedFile)
+                schedules.AddFromFile(config.SchedFile)
             }
             return config
         }

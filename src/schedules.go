@@ -5,12 +5,12 @@
 package main
 
 import (
+    "encoding/json"
+    "fmt"
+    "io/ioutil"
+    "os"
     "strings"
     "time"
-    "encoding/json"
-    "io/ioutil"
-    "fmt"
-    "os"
 )
 
 const (
@@ -72,30 +72,30 @@ func (schl scheduleList) AddFromFile(file string) {
     if _, err := os.Stat(file); os.IsNotExist(err) && file == defaultSchedFileName {
         return
     }
- 
+
     schedFile, err := ioutil.ReadFile(file)
     if err != nil {
         fmt.Printf("Error opening schedule file: %v\n", err)
         return
     }
-    
+
     var readData map[string]jsonInterval
 
-   err = json.Unmarshal(schedFile,&readData)
+    err = json.Unmarshal(schedFile, &readData)
     if err != nil {
         fmt.Printf("Error parsing data: %v\n", err)
         return
     }
-    
-    for k,v := range readData {
+
+    for k, v := range readData {
         schl[k] = v.IntervalList()
-    }   
+    }
 }
 
 // Prints the stored schedules in the list
 func (schl scheduleList) List() {
-    for name,sched := range schl {
-        fmt.Println(name,": ", sched);
+    for name, sched := range schl {
+        fmt.Println(name, ": ", sched)
     }
 }
 
@@ -110,27 +110,27 @@ func (schl scheduleList) List() {
 // { 1*day + 12*hour, 2*week, 1*month + 2*week, long }
 
 func (json jsonInterval) IntervalList() intervalList {
-    il := make(intervalList,len(json))
-    for i,interval := range json {
+    il := make(intervalList, len(json))
+    for i, interval := range json {
         var duration time.Duration = 0
-        Loop:
-        for k,v := range interval {
+    Loop:
+        for k, v := range interval {
             switch k {
-            case "s","second":
+            case "s", "second":
                 duration += v * second
-            case "m","minute":
+            case "m", "minute":
                 duration += v * minute
-            case "h","hour":
+            case "h", "hour":
                 duration += v * hour
-            case "d","day":
+            case "d", "day":
                 duration += v * day
-            case "w","week":
+            case "w", "week":
                 duration += v * week
-            case "M","month":
+            case "M", "month":
                 duration += v * month
-            case "y","year":
+            case "y", "year":
                 duration += v * year
-            case "l","long":
+            case "l", "long":
                 duration = long
                 break Loop
             }
