@@ -95,7 +95,7 @@ func (schl scheduleList) AddFromFile(file string) {
 // Prints the stored schedules in the list
 func (schl scheduleList) List() {
     for name, sched := range schl {
-        fmt.Println(name, ": ", sched)
+        fmt.Printf("%s: %s\n", name, sched)
     }
 }
 
