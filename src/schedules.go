@@ -5,6 +5,10 @@
 package main
 
 import (
+    "encoding/json"
+    "fmt"
+    "io/ioutil"
+    "os"
     "strings"
     "time"
 )
@@ -41,6 +45,8 @@ func (il intervalList) goal(i int) int {
 
 type scheduleList map[string]intervalList
 
+type jsonInterval []map[string]time.Duration
+
 func (schl *scheduleList) String() string {
     a := []string{}
     for sch := range *schl {
@@ -57,4 +63,79 @@ var schedules = scheduleList{
     "shortterm": {minute * 10, hour * 2, day, week, month, long},
     "testing":   {second * 5, second * 20, second * 140, second * 280, long},
     "testing2":  {second * 5, second * 20, second * 40, second * 80, long},
+}
+
+// Adds an external JSON file to the list of available scheds
+func (schl scheduleList) AddFromFile(file string) {
+    // If we are using the default file name, and it doesn't exist, no problem, just return
+
+    if _, err := os.Stat(file); os.IsNotExist(err) && file == defaultSchedFileName {
+        return
+    }
+
+    schedFile, err := ioutil.ReadFile(file)
+    if err != nil {
+        fmt.Printf("Error opening schedule file: %v\n", err)
+        return
+    }
+
+    var readData map[string]jsonInterval
+
+    err = json.Unmarshal(schedFile, &readData)
+    if err != nil {
+        fmt.Printf("Error parsing data: %v\n", err)
+        return
+    }
+
+    for k, v := range readData {
+        schl[k] = v.IntervalList()
+    }
+}
+
+// Prints the stored schedules in the list
+func (schl scheduleList) List() {
+    for name, sched := range schl {
+        fmt.Println(name, ": ", sched)
+    }
+}
+
+// Transform a JSON formatted intervalList like this:
+// [
+//   { "day" : 1, "hour" : 12 },
+//   { "week" : 2 },
+//   { "month" : 1, "week" : 2}
+//   { "long" : 1}
+// ]
+// and it makes it equivalent to
+// { 1*day + 12*hour, 2*week, 1*month + 2*week, long }
+
+func (json jsonInterval) IntervalList() intervalList {
+    il := make(intervalList, len(json))
+    for i, interval := range json {
+        var duration time.Duration = 0
+    Loop:
+        for k, v := range interval {
+            switch k {
+            case "s", "second":
+                duration += v * second
+            case "m", "minute":
+                duration += v * minute
+            case "h", "hour":
+                duration += v * hour
+            case "d", "day":
+                duration += v * day
+            case "w", "week":
+                duration += v * week
+            case "M", "month":
+                duration += v * month
+            case "y", "year":
+                duration += v * year
+            case "l", "long":
+                duration = long
+                break Loop
+            }
+        }
+        il[i] = duration
+    }
+    return il
 }

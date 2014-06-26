@@ -213,6 +213,8 @@ func main() {
     case "list":
         fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
         subcmdList()
+    case "scheds":
+        schedules.List()
     }
     os.Exit(0)
 }
