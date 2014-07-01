@@ -15,7 +15,7 @@ import (
 func prune(q chan *Snapshot, cl Clock) {
     intervals := schedules[config.Schedule]
     // interval 0 does not need pruning, start with 1
-    for i := 1; i < len(intervals)-1; i++ {
+    for i := len(intervals)-2; i > 0; i-- {
         snapshots, err := FindSnapshots(cl)
         if err != nil {
             log.Println(err)

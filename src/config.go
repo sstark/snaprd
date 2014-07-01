@@ -37,18 +37,20 @@ func (o *Opts) Set(value string) error {
 
 // use own struct as "backing store" for parsed flags
 type Config struct {
-    RsyncPath  string
-    RsyncOpts  Opts
-    Origin     string
-    repository string
-    Schedule   string
-    verbose    bool
-    showAll    bool
-    MaxKeep    int
-    NoPurge    bool
-    NoWait     bool
-    NoLogDate  bool
-    SchedFile  string
+    RsyncPath     string
+    RsyncOpts     Opts
+    Origin        string
+    repository    string
+    Schedule      string
+    verbose       bool
+    showAll       bool
+    MaxKeep       int
+    NoPurge       bool
+    NoWait        bool
+    NoLogDate     bool
+    SchedFile     string
+    MinPercSpace  float64
+    MinGiBSpace    int
 }
 
 // WriteCache writes the global configuration to disk as a json file.
@@ -91,6 +93,8 @@ func (c *Config) ReadCache() error {
         c.Schedule = t.Schedule
         c.MaxKeep = t.MaxKeep
         c.NoPurge = t.NoPurge
+        c.MinPercSpace = t.MinPercSpace
+        c.MinGiBSpace = t.MinGiBSpace
     }
     return nil
 }
@@ -142,7 +146,7 @@ func LoadConfig() *Config {
                 "how many snapshots to keep in highest (oldest) interval. Use 0 to keep all")
             flags.BoolVar(&(config.NoPurge),
                 "noPurge", false,
-                "if set, obsolete snapshots will not be deleted")
+                "if set, obsolete snapshots will not be deleted (minimum space requirements will still be honoured)")
             flags.BoolVar(&(config.NoWait),
                 "noWait", false,
                 "if set, skip the initial waiting time before the first snapshot")
@@ -152,6 +156,13 @@ func LoadConfig() *Config {
             flags.StringVar(&(config.SchedFile),
                 "schedFile", defaultSchedFileName,
                 "path to external schedules")
+            flags.Float64Var(&(config.MinPercSpace),
+                "minPercSpace", 0,
+                "if set, keep at least x% of the snapshots filesystem free")
+            flags.IntVar(&(config.MinGiBSpace),
+                "minGbSpace", 0,
+                "if set, keep at least x GiB of the snapshots filesystem free")
+
             flags.Parse(os.Args[2:])
             if config.SchedFile != "" {
                 schedules.AddFromFile(config.SchedFile)

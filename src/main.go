@@ -121,7 +121,7 @@ func subcmdRun() (ferr error) {
     // Purger loop
     go func() {
         for {
-            if sn := <-obsoleteQueue; !config.NoPurge {
+            if sn := <-obsoleteQueue; !config.NoPurge || !checkFreeSpace(config.repository, config.MinPercSpace, config.MinGiBSpace) {
                 sn.purge()
             }
         }
