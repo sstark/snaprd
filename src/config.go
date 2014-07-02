@@ -37,20 +37,20 @@ func (o *Opts) Set(value string) error {
 
 // use own struct as "backing store" for parsed flags
 type Config struct {
-    RsyncPath     string
-    RsyncOpts     Opts
-    Origin        string
-    repository    string
-    Schedule      string
-    verbose       bool
-    showAll       bool
-    MaxKeep       int
-    NoPurge       bool
-    NoWait        bool
-    NoLogDate     bool
-    SchedFile     string
-    MinPercSpace  float64
-    MinGiBSpace    int
+    RsyncPath    string
+    RsyncOpts    Opts
+    Origin       string
+    repository   string
+    Schedule     string
+    verbose      bool
+    showAll      bool
+    MaxKeep      int
+    NoPurge      bool
+    NoWait       bool
+    NoLogDate    bool
+    SchedFile    string
+    MinPercSpace float64
+    MinGiBSpace  int
 }
 
 // WriteCache writes the global configuration to disk as a json file.

@@ -79,6 +79,7 @@ func subcmdRun() (ferr error) {
     obsoleteQueue := make(chan *Snapshot, 100)
     lastGoodIn := make(chan *Snapshot)
     lastGoodOut := make(chan *Snapshot)
+    freeSpaceCheck := make(chan struct{}) // Empty type for the channel: we don't care about what is inside, only about the fact that there is something inside
 
     cl := new(realClock)
     go LastGoodTicker(lastGoodIn, lastGoodOut, cl)
@@ -104,6 +105,12 @@ func subcmdRun() (ferr error) {
                     lastGoodIn <- sn
                     Debugf("pruning")
                     prune(obsoleteQueue, cl)
+                    // If we purge automatically all the expired snapshots,
+                    // there's nothing to remove to free space.
+                    if config.NoPurge {
+                        Debugf("checking space constraints")
+                        freeSpaceCheck <- struct{}{}
+                    }
                 }
             }
         }
@@ -121,12 +128,42 @@ func subcmdRun() (ferr error) {
     // Purger loop
     go func() {
         for {
-            if sn := <-obsoleteQueue; !config.NoPurge || !checkFreeSpace(config.repository, config.MinPercSpace, config.MinGiBSpace) {
+            if sn := <-obsoleteQueue; !config.NoPurge {
                 sn.purge()
             }
         }
     }()
     Debugf("started purge goroutine")
+
+    // If we are going to automatically purge all expired snapshots, we
+    // needn't even starting the gofunc
+    if config.NoPurge {
+        // Free space claiming function
+        go func() {
+            for {
+                <-freeSpaceCheck // Wait until we are ordered to do something
+                // Get all obsolete snapshots
+                snapshots, err := FindSnapshots(cl) // This returns a sorted list
+                if err != nil {
+                    log.Println(err)
+                    return
+                }
+                if len(snapshots) < 2 {
+                    log.Println("less than 2 snapshots found, not pruning")
+                    return
+                }
+                obsolete := snapshots.state(STATE_OBSOLETE, 0)
+                // We only delete as long as we need *AND* we have something to delete
+                for !checkFreeSpace(config.repository, config.MinPercSpace, config.MinGiBSpace) && len(obsolete) > 0 {
+                    // If there is not enough space, purge the oldest snapshot
+                    last := len(obsolete) - 1
+                    obsolete[last].purge()
+                    // We remove it from the list, it's quicker than recalculating the list.
+                    obsolete = obsolete[:(last - 1)]
+                }
+            }
+        }()
+    }
 
     // Global signal handling
     sigc := make(chan os.Signal, 1)
