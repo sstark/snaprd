@@ -84,7 +84,22 @@ func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
                 // - temporary network error
                 // - disk full?
                 // Detect external signalling?
-                return nil, err
+                
+                failed := true
+                
+                // First, get the error code
+                if exiterr, ok := err.(*exec.ExitError); ok { // The return code != 0)
+                	if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
+                		// status now holds the actual return code
+                		if status == 24  { // Magic number: means some files couldn't be copied because they vanished, so nothing critical. See man rsync
+                			Debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")
+                			failed = false
+                		}
+                	}
+                } 
+                if failed {
+                	return nil, err
+                }
             }
             newSn.transComplete(cl)
             log.Println("finished:", newSn.Name())

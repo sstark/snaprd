@@ -50,6 +50,7 @@ func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
             if wait > 0 {
                 log.Println("wait", wait, "before next snapshot")
                 time.Sleep(wait)
+                Debugf("Awoken at %s\n", cl.Now())
             }
         }
         out <- sn
@@ -76,7 +77,7 @@ func subcmdRun() (ferr error) {
     // The obsoleteQueue should not be larger than the absolute number of
     // expected snapshots. However, there is no way (yet) to calculate that
     // number.
-    obsoleteQueue := make(chan *Snapshot, 100)
+    obsoleteQueue := make(chan *Snapshot, 10000)
     lastGoodIn := make(chan *Snapshot)
     lastGoodOut := make(chan *Snapshot)
     freeSpaceCheck := make(chan struct{}) // Empty type for the channel: we don't care about what is inside, only about the fact that there is something inside
