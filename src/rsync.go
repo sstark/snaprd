@@ -58,7 +58,15 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
 // error was presumably volatile.
 func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
     cl := new(realClock)
-    newSn := newIncompleteSnapshot(cl)
+    
+    partial := LastReusableFromDisk(cl)
+    
+    var newSn *Snapshot
+    if partial == nil {
+    	newSn = newIncompleteSnapshot(cl)
+    } else {
+    	newSn = ReusePartial(partial, cl)
+    }
     cmd := createRsyncCommand(newSn, base)
     err, done := runRsyncCommand(cmd)
     if err != nil {
@@ -77,7 +85,7 @@ func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
             }
             return nil, errors.New("rsync killed by request")
         case err := <-done:
-            Debugf("received something on done channel:", nil)
+            Debugf("received something on done channel: ", err)
             if err != nil {
                 // At this stage rsync ran, but with errors.
                 // Restart in case of
@@ -90,6 +98,7 @@ func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
                 // First, get the error code
                 if exiterr, ok := err.(*exec.ExitError); ok { // The return code != 0)
                 	if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
+                		Debugf("The error code we got is: ", err)
                 		// status now holds the actual return code
                 		if status == 24  { // Magic number: means some files couldn't be copied because they vanished, so nothing critical. See man rsync
                 			Debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")

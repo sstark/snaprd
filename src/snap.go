@@ -187,6 +187,23 @@ func (sl SnapshotList) lastGood() *Snapshot {
     return sl[ix]
 }
 
+// Find the last snapshot in a given list.
+func (sl SnapshotList) last() *Snapshot {
+    var t time.Time
+    var ix int = -1
+    for i, sn := range sl {
+        if (sn.startTime.After(t)) {
+            t = sn.startTime
+            ix = i
+        }
+    }
+    if ix == -1 {
+        return nil
+    }
+    return sl[ix]
+}
+
+
 // parseSnapshotName split the given string up into the various values needed
 // for creating a Snapshot struct.
 func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
@@ -321,4 +338,27 @@ func LastGoodFromDisk(cl Clock) *Snapshot {
         log.Println("lastgood: could not find suitable base snapshot")
     }
     return sn
+}
+
+// LastIncompleteFromDisk lists the snapshots in the repository and returns a pointer
+// to the youngest incomplete snapshot, for possible reuse.
+func LastReusableFromDisk(cl Clock) *Snapshot {
+    snapshots, err := FindSnapshots(cl)
+    if err != nil {
+        log.Println(err)
+    }
+    sn := snapshots.state(STATE_INCOMPLETE, NONE).last()
+    return sn
+}
+
+// ReusePartial generates a new incomplete snapshot based on a previous one.
+// Can be used to try to use previous incomplete snapshots, or even to reuse
+// obsolete ones.
+func ReusePartial(orig *Snapshot, cl Clock) *Snapshot {
+	s := newIncompleteSnapshot(cl)
+	err := os.Rename(orig.FullName(), s.FullName())
+    if err != nil {
+        log.Fatal(err)
+    }
+    return s;
 }
