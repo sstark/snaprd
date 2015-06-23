@@ -59,13 +59,12 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
 func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
     cl := new(realClock)
     
-    partial := LastReusableFromDisk(cl)
+    newSn := LastReusableFromDisk(cl)
     
-    var newSn *Snapshot
-    if partial == nil {
+    if newSn == nil {
     	newSn = newIncompleteSnapshot(cl)
     } else {
-    	newSn = ReusePartial(partial, cl)
+    	newSn.transIncomplete(cl)
     }
     cmd := createRsyncCommand(newSn, base)
     err, done := runRsyncCommand(cmd)

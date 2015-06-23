@@ -154,6 +154,21 @@ func (s *Snapshot) transPurging() {
     }
 }
 
+// transIncomplete generates a new incomplete snapshot based on a previous one.
+// Can be used to try to use previous incomplete snapshots, or even to reuse
+// obsolete ones.
+func (s *Snapshot) transIncomplete(cl Clock) {
+	oldName := s.FullName()
+	s.startTime = cl.Now()
+	s.endTime = time.Time{}
+	s.state = STATE_INCOMPLETE
+	newName := s.FullName()
+	err := os.Rename(oldName, newName)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+
 // purge deletes the receiver snapshot from disk.
 func (s *Snapshot) purge() {
     s.transPurging()
@@ -349,16 +364,4 @@ func LastReusableFromDisk(cl Clock) *Snapshot {
     }
     sn := snapshots.state(STATE_INCOMPLETE, NONE).last()
     return sn
-}
-
-// ReusePartial generates a new incomplete snapshot based on a previous one.
-// Can be used to try to use previous incomplete snapshots, or even to reuse
-// obsolete ones.
-func ReusePartial(orig *Snapshot, cl Clock) *Snapshot {
-	s := newIncompleteSnapshot(cl)
-	err := os.Rename(orig.FullName(), s.FullName())
-    if err != nil {
-        log.Fatal(err)
-    }
-    return s;
 }
