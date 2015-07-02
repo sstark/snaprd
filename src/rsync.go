@@ -21,6 +21,7 @@ func createRsyncCommand(sn *Snapshot, base *Snapshot) *exec.Cmd {
     cmd := exec.Command(config.RsyncPath)
     args := make([]string, 0, 256)
     args = append(args, config.RsyncPath)
+    args = append(args, "--delete")
     args = append(args, "-a")
     args = append(args, config.RsyncOpts...)
     if base != nil {
