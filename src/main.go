@@ -99,19 +99,18 @@ func subcmdRun() (ferr error) {
             case lastGood = <-lastGoodOut:
                 sn, err := CreateSnapshot(lastGood)
                 if err != nil || sn == nil {
-                    Debugf("snapshot creation finally failed (%s), exit loop", err)
-                    createError = err
-                    go func() { createExit <- true; return }()
-                } else {
-                    lastGoodIn <- sn
-                    Debugf("pruning")
-                    prune(obsoleteQueue, cl)
-                    // If we purge automatically all the expired snapshots,
-                    // there's nothing to remove to free space.
-                    if config.NoPurge {
-                        Debugf("checking space constraints")
-                        freeSpaceCheck <- struct{}{}
-                    }
+                    Debugf("snapshot creation finally failed (%s), the partial transfer will hopefully be reused", err)
+                    //createError = err
+                    //go func() { createExit <- true; return }()
+                }
+                lastGoodIn <- sn
+                Debugf("pruning")
+                prune(obsoleteQueue, cl)
+                // If we purge automatically all the expired snapshots,
+                // there's nothing to remove to free space.
+                if config.NoPurge {
+                    Debugf("checking space constraints")
+                    freeSpaceCheck <- struct{}{}
                 }
             }
         }
