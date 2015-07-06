@@ -22,3 +22,4 @@
 - Read http://golang.org/ref/spec#Receive_operator again and rethink subcmdRun()
   design. Use close(c) when appropriate.
 - support more than one directory to backup (avoid having to run many instances on a system)
+- mail hook in case of failed/missed backup
