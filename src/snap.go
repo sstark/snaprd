@@ -158,12 +158,12 @@ func (s *Snapshot) transPurging() {
 // Can be used to try to use previous incomplete snapshots, or even to reuse
 // obsolete ones.
 func (s *Snapshot) transIncomplete(cl Clock) {
-	oldName := s.FullName()
-	s.startTime = cl.Now()
-	s.endTime = time.Time{}
-	s.state = STATE_INCOMPLETE
-	newName := s.FullName()
-	err := os.Rename(oldName, newName)
+    oldName := s.FullName()
+    s.startTime = cl.Now()
+    s.endTime = time.Time{}
+    s.state = STATE_INCOMPLETE
+    newName := s.FullName()
+    err := os.Rename(oldName, newName)
     if err != nil {
         log.Fatal(err)
     }
@@ -207,7 +207,7 @@ func (sl SnapshotList) last() *Snapshot {
     var t time.Time
     var ix int = -1
     for i, sn := range sl {
-        if (sn.startTime.After(t)) {
+        if sn.startTime.After(t) {
             t = sn.startTime
             ix = i
         }
@@ -217,7 +217,6 @@ func (sl SnapshotList) last() *Snapshot {
     }
     return sl[ix]
 }
-
 
 // parseSnapshotName split the given string up into the various values needed
 // for creating a Snapshot struct.

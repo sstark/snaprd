@@ -59,13 +59,13 @@ func runRsyncCommand(cmd *exec.Cmd) (error, chan error) {
 // error was presumably volatile.
 func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
     cl := new(realClock)
-    
+
     newSn := LastReusableFromDisk(cl)
-    
+
     if newSn == nil {
-    	newSn = newIncompleteSnapshot(cl)
+        newSn = newIncompleteSnapshot(cl)
     } else {
-    	newSn.transIncomplete(cl)
+        newSn.transIncomplete(cl)
     }
     cmd := createRsyncCommand(newSn, base)
     err, done := runRsyncCommand(cmd)
@@ -92,22 +92,22 @@ func CreateSnapshot(base *Snapshot) (*Snapshot, error) {
                 // - temporary network error
                 // - disk full?
                 // Detect external signalling?
-                
+
                 failed := true
-                
+
                 // First, get the error code
                 if exiterr, ok := err.(*exec.ExitError); ok { // The return code != 0)
-                	if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
+                    if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
                         Debugf("The error code we got is: ", status.ExitStatus())
-                		// status now holds the actual return code
-                        if status.ExitStatus() == 24  { // Magic number: means some files couldn't be copied because they vanished, so nothing critical. See man rsync
-                			Debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")
-                			failed = false
-                		}
-                	}
-                } 
+                        // status now holds the actual return code
+                        if status.ExitStatus() == 24 { // Magic number: means some files couldn't be copied because they vanished, so nothing critical. See man rsync
+                            Debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")
+                            failed = false
+                        }
+                    }
+                }
                 if failed {
-                	return nil, err
+                    return nil, err
                 }
             }
             newSn.transComplete(cl)
