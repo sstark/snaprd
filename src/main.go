@@ -159,7 +159,7 @@ func subcmdRun() (ferr error) {
                     last := len(obsolete) - 1
                     obsolete[last].purge()
                     // We remove it from the list, it's quicker than recalculating the list.
-                    obsolete = obsolete[:(last - 1)]
+                    obsolete = obsolete[:last]
                 }
             }
         }()
