@@ -19,7 +19,7 @@ func gatherTestData(baseDir string) (data syscall.Statfs_t) {
 
 }
 
-func TestCheckFreeSapce(t *testing.T) {
+func TestCheckFreeSpace(t *testing.T) {
     // First, gather the data
     data := gatherTestData("/")
 
