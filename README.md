@@ -1,8 +1,5 @@
 snaprd - backup utility
-
-============================
-NOT READY FOR PRODUCTION USE
-============================
+=======================
 
 
 Overview
