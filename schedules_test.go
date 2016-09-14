@@ -3,7 +3,9 @@
 package main
 
 import (
+	"reflect"
 	"testing"
+	"time"
 )
 
 var testSchedules = scheduleList{
@@ -50,5 +52,19 @@ func TestScheduleGoal(t *testing.T) {
 		if v != pair.goal {
 			t.Errorf("goal(%v) got %v, expected %v", pair.i, v, pair.goal)
 		}
+	}
+}
+
+func TestSchedulesAddFromFile(t *testing.T) {
+	schedules.addFromFile("testdata/snaprd.schedules")
+	wanted := intervalList{
+		time.Hour * 24,
+		time.Hour * 168,
+		time.Hour * 672,
+		time.Hour * 876000,
+	}
+	got := schedules["test1"]
+	if !reflect.DeepEqual(got, wanted) {
+		t.Errorf("wanted %v, got %v", wanted, got)
 	}
 }
