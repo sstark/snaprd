@@ -101,6 +101,7 @@ func (c *Config) ReadCache() error {
 var subcmd string
 
 func usage() {
+	fmt.Printf("%s %s\n", myName, version)
 	fmt.Printf(`usage: %[1]s <command> <options>
 Commands:
     run     Periodically create snapshots

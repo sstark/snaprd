@@ -244,7 +244,7 @@ func main() {
 	}
 	switch subcmd {
 	case "run":
-		log.Printf("%s started with pid %d\n", myName, os.Getpid())
+		log.Printf("%s %s started with pid %d\n", myName, version, os.Getpid())
 		log.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
 		err := subcmdRun()
 		if err != nil {
