@@ -1,7 +1,7 @@
 BIN=	snaprd
 
 ${BIN}: *.go Makefile
-	go build -race -o snaprd
+	go build -o snaprd
 
 checkfmt:
 	@gofmt -d *.go
