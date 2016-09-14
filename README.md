@@ -19,11 +19,9 @@ Overview
 Building
 --------
 
-Run the script ./build.sh in this directory.
-
+Run `make`
 
 Testing
 -------
 
-To run regression testing, run the script ./test.sh in this
-directory. It is not necessary to build before.
+To run regression testing, run `make test`
