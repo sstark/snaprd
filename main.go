@@ -146,7 +146,8 @@ func subcmdRun() (ferr error) {
 				// Wait until we are ordered to do something
 				<-freeSpaceCheck
 				// Get all obsolete snapshots
-				snapshots, err := findSnapshots(cl) // This returns a sorted list
+				// This returns a sorted list
+				snapshots, err := findSnapshots(cl)
 				if err != nil {
 					log.Println(err)
 					return
