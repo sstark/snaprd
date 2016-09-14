@@ -4,11 +4,12 @@ package main
 
 import (
 	"log"
+	"os"
 	"syscall"
 	"testing"
 )
 
-const testDir = "/home"
+var testDir = os.Getenv("HOME")
 
 func gatherTestData(baseDir string) (data syscall.Statfs_t) {
 	err := syscall.Statfs(testDir, &data)
