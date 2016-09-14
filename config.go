@@ -24,12 +24,12 @@ const (
 
 type opts []string
 
-// Opts getter
+// opts getter
 func (o *opts) String() string {
 	return fmt.Sprintf("\"%s\"", strings.Join(*o, ""))
 }
 
-// Opts setter
+// opts setter
 func (o *opts) Set(value string) error {
 	*o = strings.Split(value, " ")
 	return nil
