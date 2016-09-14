@@ -73,6 +73,20 @@ Basic operation:
 ```
 
 
+Stopping
+--------
+
+snaprd will immediately exit when sent the TERM or INT (ctrl-c) signal. If a
+backup is running at this time it will be left in incomplete state. (On the next
+run it will be reused potentially.)
+
+You can also send the USR1 signal, in which case snaprd will wait until the
+current backup has finished, and exit afterwards.
+
+You can find the pid of the running process in the repository directory in the
+file `.pid`.
+
+
 Schedules
 ---------
 
