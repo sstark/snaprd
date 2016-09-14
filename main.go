@@ -80,7 +80,9 @@ func subcmdRun() (ferr error) {
 	obsoleteQueue := make(chan *snapshot, 10000)
 	lastGoodIn := make(chan *snapshot)
 	lastGoodOut := make(chan *snapshot)
-	freeSpaceCheck := make(chan struct{}) // Empty type for the channel: we don't care about what is inside, only about the fact that there is something inside
+	// Empty type for the channel: we don't care about what is inside, only
+	// about the fact that there is something inside
+	freeSpaceCheck := make(chan struct{})
 
 	cl := new(realClock)
 	go lastGoodTicker(lastGoodIn, lastGoodOut, cl)
@@ -118,9 +120,9 @@ func subcmdRun() (ferr error) {
 	}()
 	debugf("started snapshot creation goroutine")
 
-	// Usually the purger gets its input only from prune(). But there
-	// could be snapshots left behind from a previously failed snaprd run, so
-	// we fill the obsoleteQueue once at the beginning.
+	// Usually the purger gets its input only from prune(). But there could be
+	// snapshots left behind from a previously failed snaprd run, so we fill
+	// the obsoleteQueue once at the beginning.
 	for _, sn := range findDangling(cl) {
 		obsoleteQueue <- sn
 	}
@@ -141,7 +143,8 @@ func subcmdRun() (ferr error) {
 		// Free space claiming function
 		go func() {
 			for {
-				<-freeSpaceCheck // Wait until we are ordered to do something
+				// Wait until we are ordered to do something
+				<-freeSpaceCheck
 				// Get all obsolete snapshots
 				snapshots, err := findSnapshots(cl) // This returns a sorted list
 				if err != nil {

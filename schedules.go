@@ -26,7 +26,7 @@ const (
 
 type intervalList []time.Duration
 
-// Returns how long ago the given interval started
+// offset returns how long ago the given interval started
 func (il intervalList) offset(i int) time.Duration {
 	if i == 0 {
 		return 0
@@ -34,7 +34,7 @@ func (il intervalList) offset(i int) time.Duration {
 	return il[i] + il.offset(i-1)
 }
 
-// Returns how many snapshots are the goal in the given interval
+// goal returns how many snapshots are the goal in the given interval
 func (il intervalList) goal(i int) int {
 	if i > len(il)-2 {
 		panic("this should not happen: highest interval is innumerable!")
@@ -54,9 +54,9 @@ func (schl *scheduleList) String() string {
 	return strings.Join(a, ",")
 }
 
-// List of available snapshot schedules. Defines how often snapshots are made
-// or purged. The span of an interval is always the snapshot distance of the
-// next interval.
+// schedules is a list of available snapshot schedules. Defines how often
+// snapshots are made or purged. The span of an interval is always the snapshot
+// distance of the next interval.
 var schedules = scheduleList{
 	"longterm":  {hour * 6, day, week, month, long},
 	"shortterm": {minute * 10, hour * 2, day, week, month, long},
@@ -64,7 +64,7 @@ var schedules = scheduleList{
 	"testing2":  {second * 5, second * 20, second * 40, second * 80, long},
 }
 
-// Adds an external JSON file to the list of available scheds
+// AddFromFile adds an external JSON file to the list of available scheds
 func (schl scheduleList) AddFromFile(file string) {
 	// If we are using the default file name, and it doesn't exist, no problem, just return
 
@@ -91,7 +91,7 @@ func (schl scheduleList) AddFromFile(file string) {
 	}
 }
 
-// Prints the stored schedules in the list
+// List prints the stored schedules in the list
 func (schl scheduleList) List() {
 	for name, sched := range schl {
 		fmt.Printf("%s: %s\n", name, sched)

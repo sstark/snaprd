@@ -100,7 +100,11 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 					if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
 						debugf("The error code we got is: ", status.ExitStatus())
 						// status now holds the actual return code
-						if status.ExitStatus() == 24 { // Magic number: means some files couldn't be copied because they vanished, so nothing critical. See man rsync
+
+						// Magic number: means some files couldn't be
+						// copied because they vanished, so nothing
+						// critical. See man rsync
+						if status.ExitStatus() == 24 {
 							debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")
 							failed = false
 						}
