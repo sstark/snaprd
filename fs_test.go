@@ -24,8 +24,8 @@ func TestCheckFreeSpace(t *testing.T) {
 	// First, gather the data
 	data := gatherTestData("/")
 
-	var actualFreePerc float64 = 100 * float64(data.Bfree) / float64(data.Blocks)
-	var actualFreeGiB int = int(uint64(data.Bsize) * data.Bfree / GiB)
+	var actualFreePerc = 100 * float64(data.Bfree) / float64(data.Blocks)
+	var actualFreeGiB = int(uint64(data.Bsize) * data.Bfree / GiB)
 
 	// Now, let's make a quick run of the test
 	var result bool

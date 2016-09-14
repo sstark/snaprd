@@ -9,7 +9,8 @@ import (
 	"syscall"
 )
 
-const GiB = 1024 * 1024 * 1024 // One gibibyte (2^30)
+// GiB is exactly one gibibyte (2^30)
+const GiB = 1024 * 1024 * 1024
 
 // Function to verify the space constraints specified by the user.
 // Return true if all the constraints are satisfied, or in case something unusual happens.
@@ -20,7 +21,7 @@ func checkFreeSpace(baseDir string, minPerc float64, minGiB int) bool {
 	}
 
 	var stats syscall.Statfs_t
-	Debugf("Trying to check free space in %s", baseDir)
+	debugf("Trying to check free space in %s", baseDir)
 	err := syscall.Statfs(baseDir, &stats)
 	if err != nil {
 		log.Println("could not check free space:", err)
@@ -30,7 +31,7 @@ func checkFreeSpace(baseDir string, minPerc float64, minGiB int) bool {
 	sizeBytes := uint64(stats.Bsize) * stats.Blocks
 	freeBytes := uint64(stats.Bsize) * stats.Bfree
 
-	Debugf("We have %f GiB, and %f GiB of them are free.", float64(sizeBytes)/GiB, float64(freeBytes)/GiB)
+	debugf("We have %f GiB, and %f GiB of them are free.", float64(sizeBytes)/GiB, float64(freeBytes)/GiB)
 
 	// The actual check... we fail it we are below either the absolute or the relative value
 

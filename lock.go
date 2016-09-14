@@ -11,32 +11,32 @@ import (
 	"strconv"
 )
 
-type PidLocker struct {
+type pidLocker struct {
 	pid int
 	f   string
 }
 
-func NewPidLocker(lockfile string) *PidLocker {
-	return &PidLocker{
+func newPidLocker(lockfile string) *pidLocker {
+	return &pidLocker{
 		pid: os.Getpid(),
 		f:   lockfile,
 	}
 }
 
-func (pl *PidLocker) Lock() {
+func (pl *pidLocker) Lock() {
 	_, err := os.Stat(pl.f)
 	if err == nil {
 		log.Fatalf("pid file %s already exists. Is snaprd running already?", pl.f)
 	}
-	Debugf("write pid %d to pidfile %s", pl.pid, pl.f)
+	debugf("write pid %d to pidfile %s", pl.pid, pl.f)
 	err = ioutil.WriteFile(pl.f, []byte(strconv.Itoa(pl.pid)), 0666)
 	if err != nil {
 		log.Fatalf("could not write pid file %s", pl.f)
 	}
 }
 
-func (pl *PidLocker) Unlock() {
-	Debugf("delete pidfile %s", pl.f)
+func (pl *pidLocker) Unlock() {
+	debugf("delete pidfile %s", pl.f)
 	err := os.Remove(pl.f)
 	if err != nil {
 		log.Fatalf("could not remove pid file %s", pl.f)

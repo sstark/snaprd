@@ -59,17 +59,17 @@ func mockConfig() {
 
 func mockRepository() {
 	for _, s := range mockSnapshots {
-		os.MkdirAll(filepath.Join(config.repository, DATA_SUBDIR, s), 0777)
+		os.MkdirAll(filepath.Join(config.repository, dataSubdir, s), 0777)
 	}
 }
 
-func assertSnapshotChanLen(t *testing.T, c chan *Snapshot, want int) {
+func assertSnapshotChanLen(t *testing.T, c chan *snapshot, want int) {
 	if got := len(c); got != want {
 		t.Errorf("channel %v contains %v snapshots, wanted %v", c, got, want)
 	}
 }
 
-func assertSnapshotChanItem(t *testing.T, c chan *Snapshot, want string) {
+func assertSnapshotChanItem(t *testing.T, c chan *snapshot, want string) {
 	if got := <-c; got.String() != want {
 		t.Errorf("prune() obsoleted %v, wanted %v", got.String(), want)
 	}
@@ -86,7 +86,7 @@ func TestPrune(t *testing.T) {
 	mockRepository()
 	defer os.RemoveAll(config.repository)
 	cl := newSkewClock(startAt)
-	c := make(chan *Snapshot, 100)
+	c := make(chan *snapshot, 100)
 
 	tests := []pruneTestPair{
 		{0,

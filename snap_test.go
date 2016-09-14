@@ -18,7 +18,7 @@ const (
 
 func TestNewSnapshot(t *testing.T) {
 	out := strconv.FormatInt(sdate, 10) + "-" + strconv.FormatInt(edate, 10) + " Complete"
-	sn := newSnapshot(time.Unix(sdate, 0), time.Unix(edate, 0), STATE_COMPLETE)
+	sn := newSnapshot(time.Unix(sdate, 0), time.Unix(edate, 0), stateComplete)
 	if s := sn.String(); s != out {
 		t.Errorf("sn.String() = %v, want %v", s, out)
 	}
@@ -38,7 +38,7 @@ var mockSnapshotsDangling = []string{
 
 func mockRepositoryDangling() {
 	for _, s := range mockSnapshotsDangling {
-		os.MkdirAll(filepath.Join(config.repository, DATA_SUBDIR, s), 0777)
+		os.MkdirAll(filepath.Join(config.repository, dataSubdir, s), 0777)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestFindDangling(t *testing.T) {
 	defer os.RemoveAll(config.repository)
 	cl := newSkewClock(startAt)
 
-	sl := FindDangling(cl)
+	sl := findDangling(cl)
 	lgot, lwant := len(sl), len(tests)
 	if lgot != lwant {
 		t.Errorf("FindDangling() found %v, should be %v", lgot, lwant)
@@ -75,55 +75,55 @@ func TestLastGood(t *testing.T) {
 	defer os.RemoveAll(config.repository)
 	cl := newSkewClock(startAt)
 
-	sl, _ := FindSnapshots(cl)
+	sl, _ := findSnapshots(cl)
 	if s := sl.lastGood().String(); s != lastGood {
 		t.Errorf("lastGood() found %v, should be %v", s, lastGood)
 	}
 	// Advance to next snapshot the is not (yet) complete, see if this is
 	// omitted as it should
-	os.Mkdir(filepath.Join(config.repository, DATA_SUBDIR, "1400337727-0-incomplete"), 0777)
+	os.Mkdir(filepath.Join(config.repository, dataSubdir, "1400337727-0-incomplete"), 0777)
 	cl.skew -= schedules["testing2"][0]
-	sl, _ = FindSnapshots(cl)
+	sl, _ = findSnapshots(cl)
 	if s := sl.lastGood().String(); s != lastGood {
 		t.Errorf("lastGood() found %v, should be %v", s, lastGood)
 	}
 }
 
 type snStateTestPair struct {
-	include SnapshotState
-	exclude SnapshotState
-	sl      *SnapshotList
+	include snapshotState
+	exclude snapshotState
+	sl      *snapshotList
 }
 
 func TestSnapshotState(t *testing.T) {
-	slIn := &SnapshotList{
-		{time.Unix(1400337531, 0), time.Unix(1400337532, 0), STATE_COMPLETE},
-		{time.Unix(1400337611, 0), time.Unix(1400337612, 0), STATE_COMPLETE},
-		{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
-		{time.Unix(1400337671, 0), time.Unix(1400337672, 0), STATE_COMPLETE},
-		{time.Unix(1400337691, 0), time.Unix(1400337692, 0), STATE_COMPLETE},
-		{time.Unix(1400337706, 0), time.Unix(1400337707, 0), STATE_COMPLETE},
-		{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
-		{time.Unix(1400337716, 0), time.Unix(1400337717, 0), STATE_COMPLETE},
-		{time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_INCOMPLETE},
+	slIn := &snapshotList{
+		{time.Unix(1400337531, 0), time.Unix(1400337532, 0), stateComplete},
+		{time.Unix(1400337611, 0), time.Unix(1400337612, 0), stateComplete},
+		{time.Unix(1400337651, 0), time.Unix(1400337652, 0), statePurging},
+		{time.Unix(1400337671, 0), time.Unix(1400337672, 0), stateComplete},
+		{time.Unix(1400337691, 0), time.Unix(1400337692, 0), stateComplete},
+		{time.Unix(1400337706, 0), time.Unix(1400337707, 0), stateComplete},
+		{time.Unix(1400337711, 0), time.Unix(1400337712, 0), stateObsolete},
+		{time.Unix(1400337716, 0), time.Unix(1400337717, 0), stateComplete},
+		{time.Unix(1400337721, 0), time.Unix(1400337722, 0), stateIncomplete},
 	}
 	tests := []snStateTestPair{
 		{
-			STATE_PURGING, 0, &SnapshotList{
-				&Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+			statePurging, 0, &snapshotList{
+				&snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), statePurging},
 			},
 		},
 		{
-			STATE_PURGING + STATE_OBSOLETE, 0, &SnapshotList{
-				&Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
-				&Snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
+			statePurging + stateObsolete, 0, &snapshotList{
+				&snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), statePurging},
+				&snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), stateObsolete},
 			},
 		},
 		{
-			ANY, STATE_COMPLETE, &SnapshotList{
-				&Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
-				&Snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), STATE_OBSOLETE},
-				&Snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_INCOMPLETE},
+			any, stateComplete, &snapshotList{
+				&snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), statePurging},
+				&snapshot{time.Unix(1400337711, 0), time.Unix(1400337712, 0), stateObsolete},
+				&snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), stateIncomplete},
 			},
 		},
 	}
@@ -148,27 +148,27 @@ func TestSnapshotState(t *testing.T) {
 
 type snParseTestPair struct {
 	in  string
-	out *Snapshot
+	out *snapshot
 }
 
 func TestParseSnapshotName(t *testing.T) {
 	testsGood := []snParseTestPair{
 		{
 			"1400337531-1400337532-complete",
-			&Snapshot{time.Unix(1400337531, 0), time.Unix(1400337532, 0), STATE_COMPLETE},
+			&snapshot{time.Unix(1400337531, 0), time.Unix(1400337532, 0), stateComplete},
 		},
 		{
 			"1400337651-1400337652-purging",
-			&Snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), STATE_PURGING},
+			&snapshot{time.Unix(1400337651, 0), time.Unix(1400337652, 0), statePurging},
 		},
 		{
 			"1400337721-1400337722-obsolete",
-			&Snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), STATE_OBSOLETE},
+			&snapshot{time.Unix(1400337721, 0), time.Unix(1400337722, 0), stateObsolete},
 		},
 	}
 	for _, pair := range testsGood {
 		stime, etime, state, err := parseSnapshotName(pair.in)
-		sOut := &Snapshot{stime, etime, state}
+		sOut := &snapshot{stime, etime, state}
 		if err != nil {
 			t.Errorf("parseSnapshotName(%v) gave error %v", pair.in, err)
 		}

@@ -30,9 +30,8 @@ type intervalList []time.Duration
 func (il intervalList) offset(i int) time.Duration {
 	if i == 0 {
 		return 0
-	} else {
-		return il[i] + il.offset(i-1)
 	}
+	return il[i] + il.offset(i-1)
 }
 
 // Returns how many snapshots are the goal in the given interval
@@ -112,7 +111,7 @@ func (schl scheduleList) List() {
 func (json jsonInterval) IntervalList() intervalList {
 	il := make(intervalList, len(json))
 	for i, interval := range json {
-		var duration time.Duration = 0
+		var duration time.Duration
 	Loop:
 		for k, v := range interval {
 			switch k {

@@ -17,71 +17,71 @@ import (
 	"time"
 )
 
-type SnapshotState uint
+type snapshotState uint
 
-const NONE SnapshotState = 0
+const none snapshotState = 0
 const (
-	STATE_INCOMPLETE SnapshotState = 1 << iota
-	STATE_COMPLETE
-	STATE_OBSOLETE
-	STATE_PURGING
-	ANY = (1 << iota) - 1
+	stateIncomplete snapshotState = 1 << iota
+	stateComplete
+	stateObsolete
+	statePurging
+	any = (1 << iota) - 1
 )
 
-func (st SnapshotState) String() string {
+func (st snapshotState) String() string {
 	switch st {
-	case STATE_INCOMPLETE:
+	case stateIncomplete:
 		return "Incomplete"
-	case STATE_COMPLETE:
+	case stateComplete:
 		return "Complete"
-	case STATE_OBSOLETE:
+	case stateObsolete:
 		return "Obsolete"
-	case STATE_PURGING:
+	case statePurging:
 		return "Purging"
 	}
 	return "Unknown"
 }
 
-type Snapshot struct {
+type snapshot struct {
 	startTime time.Time
 	endTime   time.Time
-	state     SnapshotState
+	state     snapshotState
 }
 
-func newSnapshot(startTime, endTime time.Time, state SnapshotState) *Snapshot {
-	return &Snapshot{startTime, endTime, state}
+func newSnapshot(startTime, endTime time.Time, state snapshotState) *snapshot {
+	return &snapshot{startTime, endTime, state}
 }
 
-func newIncompleteSnapshot(cl Clock) *Snapshot {
-	return &Snapshot{cl.Now(), time.Time{}, STATE_INCOMPLETE}
+func newIncompleteSnapshot(cl clock) *snapshot {
+	return &snapshot{cl.Now(), time.Time{}, stateIncomplete}
 }
 
-func (s *Snapshot) String() string {
+func (s *snapshot) String() string {
 	stime := s.startTime.Unix()
 	etime := s.endTime.Unix()
 	return fmt.Sprintf("%d-%d %s", stime, etime, s.state.String())
 }
 
 // Name returns the relative pathname for the receiver snapshot.
-func (s *Snapshot) Name() string {
+func (s *snapshot) Name() string {
 	stime := s.startTime.Unix()
 	etime := s.endTime.Unix()
 	switch s.state {
-	case STATE_INCOMPLETE:
+	case stateIncomplete:
 		return fmt.Sprintf("%d-0-incomplete", stime)
-	case STATE_COMPLETE:
+	case stateComplete:
 		return fmt.Sprintf("%d-%d-complete", stime, etime)
-	case STATE_OBSOLETE:
+	case stateObsolete:
 		return fmt.Sprintf("%d-%d-obsolete", stime, etime)
-	case STATE_PURGING:
+	case statePurging:
 		return fmt.Sprintf("%d-%d-purging", stime, etime)
 	}
 	return fmt.Sprintf("%d-%d-unknown", stime, etime)
 }
 
 // FullName returns the full pathname for the receiver snapshot.
-func (s *Snapshot) FullName() string {
-	return filepath.Join(config.repository, DATA_SUBDIR, s.Name())
+func (s *snapshot) FullName() string {
+	return filepath.Join(config.repository, dataSubdir, s.Name())
 }
 
 // Mark the latest snapshot for easy access. Do not fail if not possible since
@@ -108,12 +108,12 @@ func tryLink(target string) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		Debugf("symlink latest snapshot")
+		debugf("symlink latest snapshot")
 	}
 }
 
 // transComplete transitions the receiver to complete state.
-func (s *Snapshot) transComplete(cl Clock) {
+func (s *snapshot) transComplete(cl clock) {
 	oldName := s.FullName()
 	etime := cl.Now()
 	if etime.Before(s.startTime) {
@@ -124,18 +124,18 @@ func (s *Snapshot) transComplete(cl Clock) {
 		etime = etime.Add(time.Second)
 	}
 	s.endTime = etime
-	s.state = STATE_COMPLETE
+	s.state = stateComplete
 	err := os.Rename(oldName, s.FullName())
 	if err != nil {
 		log.Fatal(err)
 	}
-	tryLink(filepath.Join(DATA_SUBDIR, s.Name()))
+	tryLink(filepath.Join(dataSubdir, s.Name()))
 }
 
 // transObsolete transitions the receiver to obsolete state.
-func (s *Snapshot) transObsolete() {
+func (s *snapshot) transObsolete() {
 	oldName := s.FullName()
-	s.state = STATE_OBSOLETE
+	s.state = stateObsolete
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
 	if err != nil {
@@ -144,9 +144,9 @@ func (s *Snapshot) transObsolete() {
 }
 
 // transPurging transitions the receiver to purging state.
-func (s *Snapshot) transPurging() {
+func (s *snapshot) transPurging() {
 	oldName := s.FullName()
-	s.state = STATE_PURGING
+	s.state = statePurging
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
 	if err != nil {
@@ -157,11 +157,11 @@ func (s *Snapshot) transPurging() {
 // transIncomplete generates a new incomplete snapshot based on a previous one.
 // Can be used to try to use previous incomplete snapshots, or even to reuse
 // obsolete ones.
-func (s *Snapshot) transIncomplete(cl Clock) {
+func (s *snapshot) transIncomplete(cl clock) {
 	oldName := s.FullName()
 	s.startTime = cl.Now()
 	s.endTime = time.Time{}
-	s.state = STATE_INCOMPLETE
+	s.state = stateIncomplete
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Snapshot) transIncomplete(cl Clock) {
 }
 
 // purge deletes the receiver snapshot from disk.
-func (s *Snapshot) purge() {
+func (s *snapshot) purge() {
 	s.transPurging()
 	path := s.FullName()
 	log.Println("purging", s.Name())
@@ -178,20 +178,20 @@ func (s *Snapshot) purge() {
 	log.Println("finished purging", s.Name())
 }
 
-func (s *Snapshot) matchFilter(f SnapshotState) bool {
+func (s *snapshot) matchFilter(f snapshotState) bool {
 	//log.Println("filter:", strconv.FormatInt(int64(s.state), 2), strconv.FormatInt(int64(f), 2), strconv.FormatBool(s.state & f == s.state))
-	//log.Println(strconv.FormatInt(int64(ANY), 2))
+	//log.Println(strconv.FormatInt(int64(any), 2))
 	return (s.state & f) == s.state
 }
 
-type SnapshotList []*Snapshot
+type snapshotList []*snapshot
 
 // Find the last snapshot to use as a basis for the next one.
-func (sl SnapshotList) lastGood() *Snapshot {
+func (sl snapshotList) lastGood() *snapshot {
 	var t time.Time
-	var ix int = -1
+	var ix = -1
 	for i, sn := range sl {
-		if (sn.startTime.After(t)) && (sn.state == STATE_COMPLETE) {
+		if (sn.startTime.After(t)) && (sn.state == stateComplete) {
 			t = sn.startTime
 			ix = i
 		}
@@ -203,9 +203,9 @@ func (sl SnapshotList) lastGood() *Snapshot {
 }
 
 // Find the last snapshot in a given list.
-func (sl SnapshotList) last() *Snapshot {
+func (sl snapshotList) last() *snapshot {
 	var t time.Time
-	var ix int = -1
+	var ix = -1
 	for i, sn := range sl {
 		if sn.startTime.After(t) {
 			t = sn.startTime
@@ -220,7 +220,7 @@ func (sl SnapshotList) last() *Snapshot {
 
 // parseSnapshotName split the given string up into the various values needed
 // for creating a Snapshot struct.
-func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
+func parseSnapshotName(s string) (time.Time, time.Time, snapshotState, error) {
 	sa := strings.Split(s, "-")
 	var zero time.Time
 	if len(sa) != 3 {
@@ -234,43 +234,43 @@ func parseSnapshotName(s string) (time.Time, time.Time, SnapshotState, error) {
 	if err != nil {
 		return zero, zero, 0, err
 	}
-	var state SnapshotState = 0
+	var state snapshotState
 	switch sa[2] {
 	case "complete":
-		state = STATE_COMPLETE
+		state = stateComplete
 	case "incomplete":
-		state = STATE_INCOMPLETE
+		state = stateIncomplete
 	case "obsolete":
-		state = STATE_OBSOLETE
+		state = stateObsolete
 	case "purging":
-		state = STATE_PURGING
+		state = statePurging
 	}
 	if state == 0 {
 		return time.Unix(stime, 0), time.Unix(etime, 0), state, errors.New("could not parse state: " + s)
 	}
-	if state == STATE_INCOMPLETE && etime != 0 {
+	if state == stateIncomplete && etime != 0 {
 		return zero, zero, 0, errors.New("incomplete state but non-zero end time: " + s)
 	}
 	return time.Unix(stime, 0), time.Unix(etime, 0), state, nil
 }
 
-type SnapshotListByStartTime SnapshotList
+type snapshotListByStartTime snapshotList
 
-func (sl SnapshotListByStartTime) Len() int {
+func (sl snapshotListByStartTime) Len() int {
 	return len(sl)
 }
-func (sl SnapshotListByStartTime) Swap(i, j int) {
+func (sl snapshotListByStartTime) Swap(i, j int) {
 	sl[i], sl[j] = sl[j], sl[i]
 }
-func (sl SnapshotListByStartTime) Less(i, j int) bool {
+func (sl snapshotListByStartTime) Less(i, j int) bool {
 	return sl[i].startTime.Before(sl[j].startTime)
 }
 
-// FindSnapshots() reads the repository directory and returns a list of
+// findSnapshots() reads the repository directory and returns a list of
 // Snapshot pointers for all valid snapshots it could find.
-func FindSnapshots(cl Clock) (SnapshotList, error) {
-	snapshots := make(SnapshotList, 0, 256)
-	dataPath := filepath.Join(config.repository, DATA_SUBDIR, "")
+func findSnapshots(cl clock) (snapshotList, error) {
+	snapshots := make(snapshotList, 0, 256)
+	dataPath := filepath.Join(config.repository, dataSubdir, "")
 	files, err := ioutil.ReadDir(dataPath)
 	if err != nil {
 		return nil, errors.New("Repository " + dataPath + " does not exist")
@@ -291,13 +291,13 @@ func FindSnapshots(cl Clock) (SnapshotList, error) {
 		sn := newSnapshot(stime, etime, state)
 		snapshots = append(snapshots, sn)
 	}
-	sort.Sort(SnapshotListByStartTime(snapshots))
+	sort.Sort(snapshotListByStartTime(snapshots))
 	return snapshots, nil
 }
 
 // Return a new list of snapshots that fall into the given time period.
-func (sl SnapshotList) period(after, before time.Time) SnapshotList {
-	slNew := make(SnapshotList, 0, len(sl))
+func (sl snapshotList) period(after, before time.Time) snapshotList {
+	slNew := make(snapshotList, 0, len(sl))
 	for _, sn := range sl {
 		if sn.startTime.After(after) && sn.startTime.Before(before) {
 			slNew = append(slNew, sn)
@@ -307,7 +307,7 @@ func (sl SnapshotList) period(after, before time.Time) SnapshotList {
 }
 
 // Return a list of snapshots within the given interval.
-func (sl SnapshotList) interval(intervals intervalList, i int, cl Clock) SnapshotList {
+func (sl snapshotList) interval(intervals intervalList, i int, cl clock) snapshotList {
 	t := cl.Now()
 	from := t.Add(-intervals.offset(i + 1))
 	to := t.Add(-intervals.offset(i))
@@ -316,8 +316,8 @@ func (sl SnapshotList) interval(intervals intervalList, i int, cl Clock) Snapsho
 
 // Return a filtered list of snapshots that match (include) or don't match
 // (exclude) the given state mask.
-func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
-	slNew := make(SnapshotList, 0, len(sl))
+func (sl snapshotList) state(include, exclude snapshotState) snapshotList {
+	slNew := make(snapshotList, 0, len(sl))
 	for _, sn := range sl {
 		if sn.matchFilter(include) && sn.matchFilter(^exclude) {
 			slNew = append(slNew, sn)
@@ -326,41 +326,41 @@ func (sl SnapshotList) state(include, exclude SnapshotState) SnapshotList {
 	return slNew
 }
 
-// FindDangling returns a list of obsolete or purged snapshots.
-func FindDangling(cl Clock) SnapshotList {
-	snapshots, err := FindSnapshots(cl)
+// findDangling returns a list of obsolete or purged snapshots.
+func findDangling(cl clock) snapshotList {
+	snapshots, err := findSnapshots(cl)
 	if err != nil {
 		log.Println(err)
 	}
-	slNew := make(SnapshotList, 0, len(snapshots))
-	for _, sn := range snapshots.state(STATE_OBSOLETE+STATE_PURGING, STATE_COMPLETE) {
-		Debugf("found dangling snapshot: %s", sn)
+	slNew := make(snapshotList, 0, len(snapshots))
+	for _, sn := range snapshots.state(stateObsolete+statePurging, stateComplete) {
+		debugf("found dangling snapshot: %s", sn)
 		slNew = append(slNew, sn)
 	}
 	return slNew
 }
 
-// LastGoodFromDisk lists the snapshots in the repository and returns a pointer
+// lastGoodFromDisk lists the snapshots in the repository and returns a pointer
 // to the youngest complete snapshot.
-func LastGoodFromDisk(cl Clock) *Snapshot {
-	snapshots, err := FindSnapshots(cl)
+func lastGoodFromDisk(cl clock) *snapshot {
+	snapshots, err := findSnapshots(cl)
 	if err != nil {
 		log.Println(err)
 	}
-	sn := snapshots.state(STATE_COMPLETE, NONE).lastGood()
+	sn := snapshots.state(stateComplete, none).lastGood()
 	if sn == nil {
 		log.Println("lastgood: could not find suitable base snapshot")
 	}
 	return sn
 }
 
-// LastIncompleteFromDisk lists the snapshots in the repository and returns a pointer
+// lastIncompleteFromDisk lists the snapshots in the repository and returns a pointer
 // to the youngest incomplete snapshot, for possible reuse.
-func LastReusableFromDisk(cl Clock) *Snapshot {
-	snapshots, err := FindSnapshots(cl)
+func lastReusableFromDisk(cl clock) *snapshot {
+	snapshots, err := findSnapshots(cl)
 	if err != nil {
 		log.Println(err)
 	}
-	sn := snapshots.state(STATE_INCOMPLETE, NONE).last()
+	sn := snapshots.state(stateIncomplete, none).last()
 	return sn
 }

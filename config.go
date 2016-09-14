@@ -19,26 +19,26 @@ import (
 const (
 	myName               = "snaprd"
 	defaultSchedFileName = "/etc/" + myName + ".schedules"
-	DATA_SUBDIR          = ".data"
+	dataSubdir           = ".data"
 )
 
-type Opts []string
+type opts []string
 
 // Opts getter
-func (o *Opts) String() string {
+func (o *opts) String() string {
 	return fmt.Sprintf("\"%s\"", strings.Join(*o, ""))
 }
 
 // Opts setter
-func (o *Opts) Set(value string) error {
+func (o *opts) Set(value string) error {
 	*o = strings.Split(value, " ")
 	return nil
 }
 
-// use own struct as "backing store" for parsed flags
+// Config is used as a backing store for parsed flags
 type Config struct {
 	RsyncPath    string
-	RsyncOpts    Opts
+	RsyncOpts    opts
 	Origin       string
 	repository   string
 	Schedule     string
@@ -56,7 +56,7 @@ type Config struct {
 // WriteCache writes the global configuration to disk as a json file.
 func (c *Config) WriteCache() error {
 	cacheFile := filepath.Join(c.repository, "."+myName+".settings")
-	Debugf("trying to write cached settings to %s", cacheFile)
+	debugf("trying to write cached settings to %s", cacheFile)
 	jsonConfig, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		log.Println("could not write config:", err)
@@ -71,35 +71,34 @@ func (c *Config) WriteCache() error {
 func (c *Config) ReadCache() error {
 	t := new(Config)
 	cacheFile := filepath.Join(c.repository, "."+myName+".settings")
-	Debugf("trying to read cached settings from %s", cacheFile)
+	debugf("trying to read cached settings from %s", cacheFile)
 	b, err := ioutil.ReadFile(filepath.Join(c.repository, "."+myName+".settings"))
 	if err != nil {
 		return err
-	} else {
-		err = json.Unmarshal(b, &t)
-		if err != nil {
-			return err
-		}
-		c.RsyncPath = t.RsyncPath
-		c.RsyncOpts = t.RsyncOpts
-		if t.SchedFile != "" {
-			c.SchedFile = t.SchedFile
-			schedules.AddFromFile(c.SchedFile)
-		}
-		c.Origin = t.Origin
-		if _, ok := schedules[t.Schedule]; ok == false {
-			log.Fatalln("no such schedule:", t.Schedule)
-		}
-		c.Schedule = t.Schedule
-		c.MaxKeep = t.MaxKeep
-		c.NoPurge = t.NoPurge
-		c.MinPercSpace = t.MinPercSpace
-		c.MinGiBSpace = t.MinGiBSpace
 	}
+	err = json.Unmarshal(b, &t)
+	if err != nil {
+		return err
+	}
+	c.RsyncPath = t.RsyncPath
+	c.RsyncOpts = t.RsyncOpts
+	if t.SchedFile != "" {
+		c.SchedFile = t.SchedFile
+		schedules.AddFromFile(c.SchedFile)
+	}
+	c.Origin = t.Origin
+	if _, ok := schedules[t.Schedule]; ok == false {
+		log.Fatalln("no such schedule:", t.Schedule)
+	}
+	c.Schedule = t.Schedule
+	c.MaxKeep = t.MaxKeep
+	c.NoPurge = t.NoPurge
+	c.MinPercSpace = t.MinPercSpace
+	c.MinGiBSpace = t.MinGiBSpace
 	return nil
 }
 
-var subcmd string = ""
+var subcmd string
 
 func usage() {
 	fmt.Printf(`usage: %[1]s <command> <options>
@@ -115,7 +114,7 @@ Examples:
 `, myName)
 }
 
-func LoadConfig() *Config {
+func loadConfig() *Config {
 	config := new(Config)
 	if len(os.Args) > 1 {
 		subcmd = os.Args[1]
@@ -170,15 +169,15 @@ func LoadConfig() *Config {
 			if _, ok := schedules[config.Schedule]; ok == false {
 				log.Fatalln("no such schedule:", config.Schedule)
 			}
-			path := filepath.Join(config.repository, DATA_SUBDIR)
-			Debugf("creating repository:", path)
+			path := filepath.Join(config.repository, dataSubdir)
+			debugf("creating repository:", path)
 			err := os.MkdirAll(path, 00755)
 			if err != nil {
 				log.Fatal(err)
 			}
 			err = config.WriteCache()
 			if err != nil {
-				log.Printf("could not write settings cache file:", err)
+				log.Print("could not write settings cache file:", err)
 			}
 			return config
 		}
@@ -208,7 +207,7 @@ func LoadConfig() *Config {
 			if err != nil {
 				log.Println("error reading cached settings (using defaults):", err)
 			}
-			Debugf("cached config: %s", config)
+			debugf("cached config: %s", config)
 			return config
 		}
 	case "help", "-h", "--help":

@@ -19,22 +19,22 @@ import (
 var config *Config
 var logger *log.Logger
 
-func Debugf(format string, args ...interface{}) {
+func debugf(format string, args ...interface{}) {
 	if os.Getenv("SNAPRD_DEBUG") == "1" {
 		logger.Output(2, "<DEBUG> "+fmt.Sprintf(format, args...))
 	}
 }
 
-// The LastGoodTicker is the clock for the create loop. It takes the last
+// lastGoodTicker is the clock for the create loop. It takes the last
 // created snapshot on its input channel and outputs it on the output channel,
 // but only after an appropriate waiting time. To start things off, the first
 // lastGood snapshot has to be read from disk.
-func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
+func lastGoodTicker(in, out chan *snapshot, cl clock) {
 	var gap, wait time.Duration
-	var sn *Snapshot
-	sn = LastGoodFromDisk(cl)
+	var sn *snapshot
+	sn = lastGoodFromDisk(cl)
 	if sn != nil {
-		Debugf("lastgood from disk: %s\n", sn.String())
+		debugf("lastgood from disk: %s\n", sn.String())
 	}
 	// kick off the loop
 	go func() {
@@ -45,12 +45,12 @@ func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
 		sn := <-in
 		if sn != nil {
 			gap = cl.Now().Sub(sn.startTime)
-			Debugf("gap: %s", gap)
+			debugf("gap: %s", gap)
 			wait = schedules[config.Schedule][0] - gap
 			if wait > 0 {
 				log.Println("wait", wait, "before next snapshot")
 				time.Sleep(wait)
-				Debugf("Awoken at %s\n", cl.Now())
+				debugf("Awoken at %s\n", cl.Now())
 			}
 		}
 		out <- sn
@@ -60,7 +60,7 @@ func LastGoodTicker(in, out chan *Snapshot, cl Clock) {
 // subcmdRun is the main, long-running routine and starts off a couple of
 // helper goroutines.
 func subcmdRun() (ferr error) {
-	pl := NewPidLocker(filepath.Join(config.repository, ".pid"))
+	pl := newPidLocker(filepath.Join(config.repository, ".pid"))
 	pl.Lock()
 	defer pl.Unlock()
 	if !config.NoWait {
@@ -77,51 +77,51 @@ func subcmdRun() (ferr error) {
 	// The obsoleteQueue should not be larger than the absolute number of
 	// expected snapshots. However, there is no way (yet) to calculate that
 	// number.
-	obsoleteQueue := make(chan *Snapshot, 10000)
-	lastGoodIn := make(chan *Snapshot)
-	lastGoodOut := make(chan *Snapshot)
+	obsoleteQueue := make(chan *snapshot, 10000)
+	lastGoodIn := make(chan *snapshot)
+	lastGoodOut := make(chan *snapshot)
 	freeSpaceCheck := make(chan struct{}) // Empty type for the channel: we don't care about what is inside, only about the fact that there is something inside
 
 	cl := new(realClock)
-	go LastGoodTicker(lastGoodIn, lastGoodOut, cl)
+	go lastGoodTicker(lastGoodIn, lastGoodOut, cl)
 
 	// Snapshot creation loop
 	go func() {
-		var lastGood *Snapshot
+		var lastGood *snapshot
 		var createError error
 	CREATE_LOOP:
 		for {
 			select {
 			case <-createExit:
-				Debugf("gracefully exiting snapshot creation goroutine")
+				debugf("gracefully exiting snapshot creation goroutine")
 				lastGoodOut = nil
 				break CREATE_LOOP
 			case lastGood = <-lastGoodOut:
-				sn, err := CreateSnapshot(lastGood)
+				sn, err := createSnapshot(lastGood)
 				if err != nil || sn == nil {
-					Debugf("snapshot creation finally failed (%s), the partial transfer will hopefully be reused", err)
+					debugf("snapshot creation finally failed (%s), the partial transfer will hopefully be reused", err)
 					//createError = err
 					//go func() { createExit <- true; return }()
 				}
 				lastGoodIn <- sn
-				Debugf("pruning")
+				debugf("pruning")
 				prune(obsoleteQueue, cl)
 				// If we purge automatically all the expired snapshots,
 				// there's nothing to remove to free space.
 				if config.NoPurge {
-					Debugf("checking space constraints")
+					debugf("checking space constraints")
 					freeSpaceCheck <- struct{}{}
 				}
 			}
 		}
 		createExitDone <- createError
 	}()
-	Debugf("started snapshot creation goroutine")
+	debugf("started snapshot creation goroutine")
 
 	// Usually the purger gets its input only from prune(). But there
 	// could be snapshots left behind from a previously failed snaprd run, so
 	// we fill the obsoleteQueue once at the beginning.
-	for _, sn := range FindDangling(cl) {
+	for _, sn := range findDangling(cl) {
 		obsoleteQueue <- sn
 	}
 
@@ -133,7 +133,7 @@ func subcmdRun() (ferr error) {
 			}
 		}
 	}()
-	Debugf("started purge goroutine")
+	debugf("started purge goroutine")
 
 	// If we are going to automatically purge all expired snapshots, we
 	// needn't even starting the gofunc
@@ -143,7 +143,7 @@ func subcmdRun() (ferr error) {
 			for {
 				<-freeSpaceCheck // Wait until we are ordered to do something
 				// Get all obsolete snapshots
-				snapshots, err := FindSnapshots(cl) // This returns a sorted list
+				snapshots, err := findSnapshots(cl) // This returns a sorted list
 				if err != nil {
 					log.Println(err)
 					return
@@ -152,7 +152,7 @@ func subcmdRun() (ferr error) {
 					log.Println("less than 2 snapshots found, not pruning")
 					return
 				}
-				obsolete := snapshots.state(STATE_OBSOLETE, 0)
+				obsolete := snapshots.state(stateObsolete, 0)
 				// We only delete as long as we need *AND* we have something to delete
 				for !checkFreeSpace(config.repository, config.MinPercSpace, config.MinGiBSpace) && len(obsolete) > 0 {
 					// If there is not enough space, purge the oldest snapshot
@@ -170,7 +170,7 @@ func subcmdRun() (ferr error) {
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	select {
 	case sig := <-sigc:
-		Debugf("Got signal", sig)
+		debugf("Got signal", sig)
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			log.Println("-> Immediate exit")
@@ -188,19 +188,19 @@ func subcmdRun() (ferr error) {
 func subcmdList() {
 	intervals := schedules[config.Schedule]
 	cl := new(realClock)
-	snapshots, err := FindSnapshots(cl)
+	snapshots, err := findSnapshots(cl)
 	if err != nil {
 		log.Println(err)
 	}
 	for n := len(intervals) - 2; n >= 0; n-- {
-		Debugf("listing interval %d", n)
+		debugf("listing interval %d", n)
 		if config.showAll {
-			snapshots = snapshots.state(ANY, NONE)
+			snapshots = snapshots.state(any, none)
 		} else {
-			snapshots = snapshots.state(STATE_COMPLETE, NONE)
+			snapshots = snapshots.state(stateComplete, none)
 		}
 		snapshots := snapshots.interval(intervals, n, cl)
-		Debugf("snapshots in interval %d: %s", n, snapshots)
+		debugf("snapshots in interval %d: %s", n, snapshots)
 		if n < len(intervals)-2 {
 			fmt.Printf("### From %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
 		} else {
@@ -230,7 +230,7 @@ func subcmdList() {
 
 func main() {
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
-	config = LoadConfig()
+	config = loadConfig()
 	if config == nil {
 		log.Fatal("no config, don't know what to do!")
 	}
