@@ -1,0 +1,13 @@
+{
+  "RsyncPath": "/usr/bin/rsync",
+  "RsyncOpts": null,
+  "Origin": "/tmp/snaprd_test/",
+  "Schedule": "testing",
+  "MaxKeep": 2,
+  "NoPurge": false,
+  "NoWait": true,
+  "NoLogDate": false,
+  "SchedFile": "/etc/snaprd.schedules",
+  "MinPercSpace": 0,
+  "MinGiBSpace": 0
+}
