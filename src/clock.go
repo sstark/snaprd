@@ -6,15 +6,15 @@
 package main
 
 import (
-    "time"
+	"time"
 )
 
 type Clock interface {
-    Now() time.Time
+	Now() time.Time
 }
 
 type realClock struct{}
 
 func (realClock) Now() time.Time {
-    return time.Now()
+	return time.Now()
 }
