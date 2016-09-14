@@ -19,7 +19,14 @@ Overview
 Building
 --------
 
-Run `make`
+Download the archive, unpack and run `make`. Then copy the binary to a
+convenient place.
+
+OR
+
+Run `go get gitlab.tuebingen.mpg.de/stark/snaprd`. The binary will be in
+`$GOPATH/bin` afterwards.
+
 
 Testing
 -------
