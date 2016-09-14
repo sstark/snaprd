@@ -254,7 +254,7 @@ func main() {
 		fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
 		subcmdList()
 	case "scheds":
-		schedules.List()
+		schedules.list()
 	}
 	os.Exit(0)
 }

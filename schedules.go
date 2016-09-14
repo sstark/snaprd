@@ -64,8 +64,8 @@ var schedules = scheduleList{
 	"testing2":  {second * 5, second * 20, second * 40, second * 80, long},
 }
 
-// AddFromFile adds an external JSON file to the list of available scheds
-func (schl scheduleList) AddFromFile(file string) {
+// addFromFile adds an external JSON file to the list of available scheds
+func (schl scheduleList) addFromFile(file string) {
 	// If we are using the default file name, and it doesn't exist, no problem, just return
 
 	if _, err := os.Stat(file); os.IsNotExist(err) && file == defaultSchedFileName {
@@ -87,12 +87,12 @@ func (schl scheduleList) AddFromFile(file string) {
 	}
 
 	for k, v := range readData {
-		schl[k] = v.IntervalList()
+		schl[k] = v.intervalList()
 	}
 }
 
-// List prints the stored schedules in the list
-func (schl scheduleList) List() {
+// list prints the stored schedules in the list
+func (schl scheduleList) list() {
 	for name, sched := range schl {
 		fmt.Printf("%s: %s\n", name, sched)
 	}
@@ -108,7 +108,7 @@ func (schl scheduleList) List() {
 // and it makes it equivalent to
 // { 1*day + 12*hour, 2*week, 1*month + 2*week, long }
 
-func (json jsonInterval) IntervalList() intervalList {
+func (json jsonInterval) intervalList() intervalList {
 	il := make(intervalList, len(json))
 	for i, interval := range json {
 		var duration time.Duration

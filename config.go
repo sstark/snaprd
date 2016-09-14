@@ -84,7 +84,7 @@ func (c *Config) ReadCache() error {
 	c.RsyncOpts = t.RsyncOpts
 	if t.SchedFile != "" {
 		c.SchedFile = t.SchedFile
-		schedules.AddFromFile(c.SchedFile)
+		schedules.addFromFile(c.SchedFile)
 	}
 	c.Origin = t.Origin
 	if _, ok := schedules[t.Schedule]; ok == false {
@@ -164,7 +164,7 @@ func loadConfig() *Config {
 
 			flags.Parse(os.Args[2:])
 			if config.SchedFile != "" {
-				schedules.AddFromFile(config.SchedFile)
+				schedules.addFromFile(config.SchedFile)
 			}
 			if _, ok := schedules[config.Schedule]; ok == false {
 				log.Fatalln("no such schedule:", config.Schedule)
@@ -201,7 +201,7 @@ func loadConfig() *Config {
 				"path to external schedules")
 			flags.Parse(os.Args[2:])
 			if config.SchedFile != "" {
-				schedules.AddFromFile(config.SchedFile)
+				schedules.addFromFile(config.SchedFile)
 			}
 			err := config.ReadCache()
 			if err != nil {
@@ -223,7 +223,7 @@ func loadConfig() *Config {
 				"path to external schedules")
 			flags.Parse(os.Args[2:])
 			if config.SchedFile != "" {
-				schedules.AddFromFile(config.SchedFile)
+				schedules.addFromFile(config.SchedFile)
 			}
 			return config
 		}
