@@ -14,7 +14,7 @@ func TestCreateRsyncCommand(t *testing.T) {
 		{time.Unix(1400534523, 0), time.Unix(0, 0), stateIncomplete},
 	}
 	// shadow global config
-	config = config
+	var config = config
 	config.repository = "testdata"
 	config.ReadCache()
 	cmd := createRsyncCommand(testSnapshots[1], testSnapshots[0])
