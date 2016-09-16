@@ -213,7 +213,8 @@ func loadConfig() *Config {
 			}
 			err := config.ReadCache()
 			if err != nil {
-				log.Println("error reading cached settings (using defaults):", err)
+				log.Println("error reading cached settings:", err)
+				log.Fatalf("this does not look like a %s repository\n", myName)
 			}
 			debugf("cached config: %s", config)
 			return config
