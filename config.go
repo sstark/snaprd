@@ -20,6 +20,7 @@ const (
 	myName               = "snaprd"
 	defaultSchedFileName = "/etc/" + myName + ".schedules"
 	dataSubdir           = ".data"
+	defaultRepository    = "/tmp/snaprd_dest"
 )
 
 type opts []string
@@ -136,8 +137,11 @@ func loadConfig() *Config {
 				"origin", "/tmp/snaprd_test/",
 				"data source")
 			flags.StringVar(&(config.repository),
-				"repository", "/tmp/snaprd_dest",
+				"repository", defaultRepository,
 				"where to store snapshots")
+			flags.StringVar(&(config.repository),
+				"r", defaultRepository,
+				"(shorthand for -repository)")
 			flags.StringVar(&(config.Schedule),
 				"schedule", "longterm",
 				"one of "+schedules.String())
@@ -186,8 +190,11 @@ func loadConfig() *Config {
 		{
 			flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
 			flags.StringVar(&(config.repository),
-				"repository", "/tmp/snaprd_dest",
+				"repository", defaultRepository,
 				"where snapshots are located")
+			flags.StringVar(&(config.repository),
+				"r", defaultRepository,
+				"(shorthand for -repository)")
 			flags.BoolVar(&(config.verbose),
 				"v", false,
 				"show more information")
