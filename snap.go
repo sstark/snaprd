@@ -174,7 +174,10 @@ func (s *snapshot) purge() {
 	s.transPurging()
 	path := s.FullName()
 	log.Println("purging", s.Name())
-	os.RemoveAll(path)
+	err := os.RemoveAll(path)
+	if err != nil {
+		log.Printf("error when purging \"%s\" (ignored): %s", s.Name(), err)
+	}
 	log.Println("finished purging", s.Name())
 }
 
