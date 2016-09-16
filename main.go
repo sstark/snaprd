@@ -189,9 +189,11 @@ func subcmdRun() (ferr error) {
 }
 
 // subcmdList give the user an overview of what's in the repository.
-func subcmdList() {
+func subcmdList(cl clock) {
 	intervals := schedules[config.Schedule]
-	cl := new(realClock)
+	if cl == nil {
+		cl = new(realClock)
+	}
 	snapshots, err := findSnapshots(cl)
 	if err != nil {
 		log.Println(err)
@@ -253,7 +255,7 @@ func main() {
 		}
 	case "list":
 		fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
-		subcmdList()
+		subcmdList(nil)
 	case "scheds":
 		schedules.list()
 	}
