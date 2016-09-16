@@ -49,7 +49,7 @@ Basic operation:
 > snaprd run -schedule=shortterm -repository=/target/dir -origin=someserver:some/dir -noWait
 2016/09/14 20:32:29 snaprd 1.0 started with pid 50606
 2016/09/14 20:32:29 ### Repository: /target/dir, Origin: someserver:some/dir, Schedule: shortterm
-2016/09/14 20:32:29 run: [/usr/bin/rsync --delete -a --link-dest=/target/dir/.data/1473875491-1473875492-complete someserevr:some/dir /target/dir/.data/1473877949-0-incomplete]
+2016/09/14 20:32:29 run: [/usr/bin/rsync --delete -a --link-dest=/target/dir/.data/1473875491-1473875492-complete someserver:some/dir /target/dir/.data/1473877949-0-incomplete]
 2016/09/14 20:32:29 finished: 1473877949-1473877950-complete
 2016/09/14 20:32:29 wait 9m59.817467794s before next snapshot
 [...]
