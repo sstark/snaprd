@@ -203,7 +203,7 @@ func subcmdList() {
 		} else {
 			snapshots = snapshots.state(stateComplete, none)
 		}
-		snapshots = snapshots.interval(intervals, n, cl)
+		snapshots := snapshots.interval(intervals, n, cl)
 		debugf("snapshots in interval %d: %s", n, snapshots)
 		if n < len(intervals)-2 {
 			fmt.Printf("### From %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
