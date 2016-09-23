@@ -121,6 +121,15 @@ func overwriteSymlink(target, linkname string) (err error) {
 		// link exists
 		if fi.Mode()&os.ModeSymlink != 0 {
 			// link is indeed a symlink
+			ltarget, lerr := os.Readlink(linkname)
+			if lerr != nil {
+				debugf("could not read %s: %v", linkname, lerr)
+			}
+			// short cut if the link is already pointing to the desired target
+			if ltarget == target {
+				return
+			}
+			debugf("symlink needs removal: %s != %s", target, ltarget)
 			err = os.Remove(linkname)
 			if err != nil {
 				// link can not be removed
