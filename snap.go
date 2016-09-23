@@ -151,7 +151,6 @@ func (s *snapshot) transPurging() {
 	s.state = statePurging
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
-	updateSymlinks()
 	if err != nil {
 		log.Fatal(err)
 	}
