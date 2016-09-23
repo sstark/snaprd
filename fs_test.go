@@ -128,3 +128,15 @@ func TestOverwriteSymlink(t *testing.T) {
 		t.Errorf("%s was not overwritten, but it should", testlink)
 	}
 }
+
+func TestUpdateSymlinks(t *testing.T) {
+	mockConfig()
+	mockRepository()
+	defer os.RemoveAll(config.repository)
+	updateSymlinks()
+	symlink := path.Join(config.repository, "Saturday_2014-05-17_16.38.51")
+	target, err := os.Readlink(symlink)
+	if target != path.Join(dataSubdir, mockSnapshots[0]) {
+		t.Errorf("symlink %s -> %s is wrong or missing: %v", symlink, target, err)
+	}
+}
