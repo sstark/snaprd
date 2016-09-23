@@ -5,7 +5,12 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"path"
+	"strings"
 	"syscall"
 )
 
@@ -44,4 +49,88 @@ func checkFreeSpace(baseDir string, minPerc float64, minGiB int) bool {
 	}
 
 	return true
+}
+
+// updateSymlinks creates user-friendly symlinks to all complete snapshots. It
+// also removes symlinks to snapshots that have been purged.
+func updateSymlinks() {
+	entries, err := ioutil.ReadDir(config.repository)
+	if err != nil {
+		log.Println("could not read repository directory", config.repository)
+		return
+	}
+	for _, f := range entries {
+		pathName := path.Join(config.repository, f.Name())
+		if isDanglingSymlink(f.Name()) {
+			os.Remove(f.Name())
+			debugf("isDangling:", pathName)
+		}
+	}
+	cl := new(realClock)
+	snapshots, err := findSnapshots(cl)
+	if err != nil {
+		log.Println("could not list snapshots")
+		return
+	}
+	for _, s := range snapshots.state(stateComplete, none) {
+		target := path.Join(dataSubdir, s.Name())
+		stime := s.startTime.Format("Monday_02.01.2006_15.04.05")
+		linkname := path.Join(config.repository, stime)
+		overwriteSymlink(target, linkname)
+	}
+	return
+}
+
+// isDanglingSymlink returns true only if linkname is a relative symlink
+// pointing to a non-existing path in dataSubdir.
+func isDanglingSymlink(linkname string) bool {
+	target, err := os.Readlink(linkname)
+	if err != nil {
+		debugf("%s: %v", linkname, err)
+		return false
+	}
+	if path.IsAbs(target) {
+		return false
+	}
+	pe := strings.Split(target, "/")
+	if len(pe) == 0 || pe[0] != dataSubdir {
+		return false
+	}
+	basedir := path.Dir(linkname)
+	_, err = os.Stat(path.Join(basedir, target))
+	if err != nil && os.IsNotExist(err) {
+		return true
+	}
+	return false
+}
+
+// overwriteSymlink creates a symbolic link from linkname to target. It will
+// overwrite an already existing link under linkname, but not if it finds a
+// regular file or directory (or anything else which is not a symlink) under
+// that name.
+func overwriteSymlink(target, linkname string) (err error) {
+	fi, err := os.Lstat(linkname)
+	if err != nil {
+		// link does not exist or can not be read. Ignore.
+		debugf("%v", err)
+	}
+	if fi != nil {
+		// link exists
+		if fi.Mode()&os.ModeSymlink != 0 {
+			// link is indeed a symlink
+			err = os.Remove(linkname)
+			if err != nil {
+				// link can not be removed
+				return
+			}
+		} else {
+			err = fmt.Errorf("won't overwrite %s, it is not a symlink (%v)", linkname, fi.Mode())
+			return
+		}
+	}
+	err = os.Symlink(target, linkname)
+	if err == nil {
+		debugf("symlink %s -> %s", linkname, target)
+	}
+	return
 }

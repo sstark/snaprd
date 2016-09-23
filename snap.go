@@ -129,6 +129,7 @@ func (s *snapshot) transComplete(cl clock) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	updateSymlinks()
 	tryLink(filepath.Join(dataSubdir, s.Name()))
 }
 
@@ -138,6 +139,7 @@ func (s *snapshot) transObsolete() {
 	s.state = stateObsolete
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
+	updateSymlinks()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -149,6 +151,7 @@ func (s *snapshot) transPurging() {
 	s.state = statePurging
 	newName := s.FullName()
 	err := os.Rename(oldName, newName)
+	updateSymlinks()
 	if err != nil {
 		log.Fatal(err)
 	}
