@@ -61,9 +61,12 @@ func updateSymlinks() {
 	}
 	for _, f := range entries {
 		pathName := path.Join(config.repository, f.Name())
-		if isDanglingSymlink(f.Name()) {
-			os.Remove(f.Name())
-			debugf("isDangling:", pathName)
+		if isDanglingSymlink(pathName) {
+			debugf("symlink %s is dangling, remove", pathName)
+			err := os.Remove(pathName)
+			if err != nil {
+				log.Println("could not remove link", pathName)
+			}
 		}
 	}
 	cl := new(realClock)
@@ -74,7 +77,7 @@ func updateSymlinks() {
 	}
 	for _, s := range snapshots.state(stateComplete, none) {
 		target := path.Join(dataSubdir, s.Name())
-		stime := s.startTime.Format("Monday_02.01.2006_15.04.05")
+		stime := s.startTime.Format("Monday_2006-01-02_15.04.05")
 		linkname := path.Join(config.repository, stime)
 		overwriteSymlink(target, linkname)
 	}
@@ -86,9 +89,9 @@ func updateSymlinks() {
 func isDanglingSymlink(linkname string) bool {
 	target, err := os.Readlink(linkname)
 	if err != nil {
-		debugf("%s: %v", linkname, err)
 		return false
 	}
+	//debugf("%s: %v", linkname, err)
 	if path.IsAbs(target) {
 		return false
 	}
@@ -112,7 +115,7 @@ func overwriteSymlink(target, linkname string) (err error) {
 	fi, err := os.Lstat(linkname)
 	if err != nil {
 		// link does not exist or can not be read. Ignore.
-		debugf("%v", err)
+		//debugf("%v", err)
 	}
 	if fi != nil {
 		// link exists
@@ -130,7 +133,7 @@ func overwriteSymlink(target, linkname string) (err error) {
 	}
 	err = os.Symlink(target, linkname)
 	if err == nil {
-		debugf("symlink %s -> %s", linkname, target)
+		//debugf("symlink %s -> %s", linkname, target)
 	}
 	return
 }
