@@ -84,34 +84,6 @@ func (s *snapshot) FullName() string {
 	return filepath.Join(config.repository, dataSubdir, s.Name())
 }
 
-// Mark the latest snapshot for easy access. Do not fail if not possible since
-// it is more important to continue creating new snapshots.
-func tryLink(target string) {
-	linkName := filepath.Join(config.repository, "latest")
-	fi, err := os.Lstat(linkName)
-	if err != nil {
-		// link does not exist or can not be read
-		log.Println(err)
-	}
-	if fi != nil {
-		// link exists
-		if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-			// link is indeed a symlink
-			err = os.Remove(linkName)
-			if err != nil {
-				// link can not be removed
-				log.Println(err)
-			}
-		}
-	}
-	err = os.Symlink(target, linkName)
-	if err != nil {
-		log.Println(err)
-	} else {
-		debugf("symlink latest snapshot")
-	}
-}
-
 // transComplete transitions the receiver to complete state.
 func (s *snapshot) transComplete(cl clock) {
 	oldName := s.FullName()
@@ -130,7 +102,7 @@ func (s *snapshot) transComplete(cl clock) {
 		log.Fatal(err)
 	}
 	updateSymlinks()
-	tryLink(filepath.Join(dataSubdir, s.Name()))
+	overwriteSymlink(filepath.Join(dataSubdir, s.Name()), filepath.Join(config.repository, "latest"))
 }
 
 // transObsolete transitions the receiver to obsolete state.
