@@ -43,6 +43,9 @@ some mechanism before startup that makes sure this file system is mounted.
 Running
 -------
 
+snaprd is supposed to be run on the system where the repository is located
+("the backup system").
+
 Basic operation:
 
 ```
