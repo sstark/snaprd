@@ -54,6 +54,7 @@ func mockConfig() {
 		Schedule:   "testing2",
 		MaxKeep:    2,
 		NoPurge:    false,
+		SchedFile:  "testdata/snaprd.schedules",
 	}
 }
 
@@ -84,6 +85,7 @@ func TestPrune(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	mockConfig()
 	mockRepository()
+	schedules.addFromFile(config.SchedFile)
 	defer os.RemoveAll(config.repository)
 	cl := newSkewClock(startAt)
 	c := make(chan *snapshot, 100)
