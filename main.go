@@ -156,7 +156,7 @@ func subcmdRun() (ferr error) {
 					log.Println("less than 2 snapshots found, not pruning")
 					return
 				}
-				obsolete := snapshots.state(stateObsolete, 0)
+				obsolete := snapshots.state(stateObsolete, none)
 				// We only delete as long as we need *AND* we have something to delete
 				for !checkFreeSpace(config.repository, config.MinPercSpace, config.MinGiBSpace) && len(obsolete) > 0 {
 					// If there is not enough space, purge the oldest snapshot
