@@ -85,7 +85,7 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 			}
 			return nil, errors.New("rsync killed by request")
 		case err := <-done:
-			debugf("received something on done channel: ", err)
+			debugf("received something on done channel: %v", err)
 			if err != nil {
 				// At this stage rsync ran, but with errors.
 				// Restart in case of
@@ -98,7 +98,7 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 				// First, get the error code
 				if exiterr, ok := err.(*exec.ExitError); ok { // The return code != 0)
 					if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
-						debugf("The error code we got is: ", status.ExitStatus())
+						debugf("The error code we got is: %v", status.ExitStatus())
 						// status now holds the actual return code
 
 						// Magic number: means some files couldn't be
