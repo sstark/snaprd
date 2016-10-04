@@ -5,14 +5,22 @@ snaprd - backup utility
 Overview
 --------
 
+Snaprd is a program that helps you to make backups of directories to another
+file system or server. You can run it on a server that has enough disk space
+and let it continuously fetch incremental changes from another server. Snaprd
+will make sure that only as many snapshots are created as match your given
+schedule or free space restrictions.
+
 - Continuous creation of snapshots at certain intervals
 - Pruning (sieving) snapshots based on fixed schedule, make snapshots more
   scarce the older they get
+- Pruning snapshots based on free disk space requirements
 - Uses rsync to create snapshots
 - Every snapshot is a complete copy, using hard links to save disk space
 - Designed to run silently in the background
 - Repository is designed to be exported via e. g. nfs or smb to enable users to
   do restores of single files or directories
+- Tested with small and huge (100TB) backup sources.
 
 The project homepage is https://gitlab.tuebingen.mpg.de/stark/snaprd
 
@@ -44,7 +52,8 @@ Running
 -------
 
 snaprd is supposed to be run on the system where the repository is located
-("the backup system").
+("the backup system"). You will want to make sure ssh works non-interactively
+for the connection to the system to backup from.
 
 Basic operation:
 
@@ -122,6 +131,13 @@ snapshots every 6 hours, thus keeping 4 snapshots per day.
 
 You can verify your schedule by running `snaprd scheds`, and later, when
 snapshots have already been created, by `snaprd list`.
+
+
+Reporting issues
+----------------
+
+Our gitlab site allows accounts to be created on request. If you do not have an
+account already, please send requests or problem reports to stark@tuebingen.mpg.de.
 
 
 Testing
