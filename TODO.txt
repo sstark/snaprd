@@ -1,5 +1,3 @@
-- pretty symlinks for users
-- check for free space
 - make list command show snapshots as a tree. Maybe optional
 - investigate rsync option -y, --fuzzy
 - how to deal with oldest snapshot?
@@ -11,7 +9,6 @@
 - think about if it is useful to add the full origin path name to the repository subdirs
 - regularly log memory stats
 - deal with negative time shifts in transComplete()
-- user configurable schedules? Or many predefined ones?
 - subcommand "schedule" to show details about schedules:
   - expected number of snapshots
   - expected disk usage, given a start value + daily changes
