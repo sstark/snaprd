@@ -28,6 +28,9 @@ The project homepage is https://gitlab.tuebingen.mpg.de/stark/snaprd
 Building
 --------
 
+Install go either from https://golang.org/ or from your distribution
+repository, e. g. "apt-get install golang".
+
 Download the archive, unpack and run `make`. Then copy the binary to a
 convenient place or run `make install` to place it in /usr/local/bin
 
