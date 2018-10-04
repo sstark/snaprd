@@ -22,7 +22,7 @@ schedule or free space restrictions.
   do restores of single files or directories
 - Tested with small and huge (100TB) backup sources.
 
-The project homepage is https://gitlab.tuebingen.mpg.de/stark/snaprd
+The project homepage is https://github.com/sstark/snaprd
 
 
 Building
@@ -36,7 +36,7 @@ convenient place or run `make install` to place it in /usr/local/bin
 
 OR
 
-Run `go get gitlab.tuebingen.mpg.de/stark/snaprd`. The binary will be in
+Run `go get github.com/sstark/snaprd`. The binary will be in
 `$GOPATH/bin` afterwards.
 
 
@@ -134,13 +134,6 @@ snapshots every 6 hours, thus keeping 4 snapshots per day.
 
 You can verify your schedule by running `snaprd scheds`, and later, when
 snapshots have already been created, by `snaprd list`.
-
-
-Reporting issues
-----------------
-
-Our gitlab site allows accounts to be created on request. If you do not have an
-account already, please send requests or problem reports to stark@tuebingen.mpg.de.
 
 
 Testing
