@@ -136,6 +136,34 @@ You can verify your schedule by running `snaprd scheds`, and later, when
 snapshots have already been created, by `snaprd list`.
 
 
+Example Unit File for Systemd
+-----------------------------
+
+Place in `/etc/systemd/system/snaprd-srv-home.service`
+
+    [Unit]
+    Description=snapshots for srv:/homes
+    Documentation=https://github.com/sstark/snaprd
+    Requires=network.target
+
+    [Service]
+    User=root
+    StandardOutput=syslog
+    ExecStart=/usr/local/bin/snaprd run -noLogDate -repository=/export/srv-home-snap -origin=srv:/export/homes
+    Restart=on-failure
+
+    [Install]
+    WantedBy=multi-user.target
+
+Enable with
+
+    sudo systemctl enable snaprd-srv-home && sudo systemctl start snaprd-srv-home
+
+Check logs with 
+
+    journalctl -u snaprd-srv-home
+
+
 Testing
 -------
 
