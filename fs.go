@@ -129,7 +129,7 @@ func overwriteSymlink(target, linkname string) (err error) {
 			if ltarget == target {
 				return
 			}
-			debugf("symlink needs removal: %s != %s", target, ltarget)
+			debugf("symlink \"%s\" needs removal: %s != %s", linkname, target, ltarget)
 			err = os.Remove(linkname)
 			if err != nil {
 				// link can not be removed
