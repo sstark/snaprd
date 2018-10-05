@@ -174,7 +174,7 @@ func subcmdRun() (ferr error) {
 	signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 	select {
 	case sig := <-sigc:
-		debugf("Got signal", sig)
+		debugf("Got signal %s", sig)
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			log.Println("-> Immediate exit")

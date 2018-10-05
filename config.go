@@ -175,7 +175,7 @@ func loadConfig() *Config {
 				log.Fatalln("no such schedule:", config.Schedule)
 			}
 			path := filepath.Join(config.repository, dataSubdir)
-			debugf("creating repository:", path)
+			debugf("creating repository: %s", path)
 			err := os.MkdirAll(path, 00755)
 			if err != nil {
 				log.Fatal(err)
@@ -216,7 +216,7 @@ func loadConfig() *Config {
 				log.Println("error reading cached settings:", err)
 				log.Fatalf("this does not look like a %s repository\n", myName)
 			}
-			debugf("cached config: %s", config)
+			debugf("cached config: %v", config)
 			return config
 		}
 	case "help", "-h", "--help":
