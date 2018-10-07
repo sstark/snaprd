@@ -8,7 +8,7 @@ checkfmt:
 	@gofmt -d *.go
 
 test:
-	go test
+	env TZ=Europe/Berlin go test
 
 install: ${BIN}
 	install ${BIN} ${PREFIX}/bin

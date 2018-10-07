@@ -1,3 +1,5 @@
 language: go
 script:
   - go test -v
+before_install:
+  - export TZ=Europe/Berlin
