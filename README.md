@@ -1,6 +1,7 @@
 snaprd - backup utility
 =======================
 
+[![Build Status](https://travis-ci.com/sstark/snaprd.svg?branch=master)](https://travis-ci.com/sstark/snaprd)
 
 Overview
 --------
