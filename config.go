@@ -90,7 +90,7 @@ func (c *Config) ReadCache() error {
 	}
 	c.Origin = t.Origin
 	if _, ok := schedules[t.Schedule]; ok == false {
-		log.Fatalln("no such schedule:", t.Schedule)
+		return fmt.Errorf("no such schedule: %s", t.Schedule)
 	}
 	c.Schedule = t.Schedule
 	c.MaxKeep = t.MaxKeep
