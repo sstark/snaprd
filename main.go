@@ -236,9 +236,9 @@ func subcmdList(cl clock) {
 
 func main() {
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
-	config = loadConfig()
-	if config == nil {
-		log.Fatal("no config, don't know what to do!")
+	var err error
+	if config, err = loadConfig(); err != nil || config == nil {
+		log.Fatal(err)
 	}
 	if config.NoLogDate {
 		log.SetFlags(logger.Flags() - log.Ldate - log.Ltime)
@@ -248,7 +248,7 @@ func main() {
 	case "run":
 		log.Printf("%s %s started with pid %d\n", myName, version, os.Getpid())
 		log.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
-		err := subcmdRun()
+		err = subcmdRun()
 		if err != nil {
 			log.Println(err)
 			os.Exit(1)

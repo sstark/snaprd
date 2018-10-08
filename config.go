@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -116,12 +117,12 @@ Examples:
 `, myName)
 }
 
-func loadConfig() *Config {
+func loadConfig() (*Config, error) {
 	config := new(Config)
 	if len(os.Args) > 1 {
 		subcmd = os.Args[1]
 	} else {
-		log.Fatal("no subcommand given")
+		return nil, errors.New("no subcommand given")
 	}
 	switch subcmd {
 	case "run":
@@ -172,19 +173,19 @@ func loadConfig() *Config {
 				schedules.addFromFile(config.SchedFile)
 			}
 			if _, ok := schedules[config.Schedule]; ok == false {
-				log.Fatalln("no such schedule:", config.Schedule)
+				return nil, fmt.Errorf("no such schedule: %s\n", config.Schedule)
 			}
 			path := filepath.Join(config.repository, dataSubdir)
 			debugf("creating repository: %s", path)
 			err := os.MkdirAll(path, 00755)
 			if err != nil {
-				log.Fatal(err)
+				return nil, err
 			}
 			err = config.WriteCache()
 			if err != nil {
 				log.Print("could not write settings cache file:", err)
 			}
-			return config
+			return config, nil
 		}
 	case "list":
 		{
@@ -213,11 +214,10 @@ func loadConfig() *Config {
 			}
 			err := config.ReadCache()
 			if err != nil {
-				log.Println("error reading cached settings:", err)
-				log.Fatalf("this does not look like a %s repository\n", myName)
+				return nil, fmt.Errorf("error reading repository settings: %s\n", err)
 			}
 			debugf("cached config: %v", config)
-			return config
+			return config, nil
 		}
 	case "help", "-h", "--help":
 		{
@@ -234,13 +234,12 @@ func loadConfig() *Config {
 			if config.SchedFile != "" {
 				schedules.addFromFile(config.SchedFile)
 			}
-			return config
+			return config, nil
 		}
 	default:
 		{
-			log.Println("unknown subcommand:", subcmd)
-			log.Fatalln("try \"help\"")
+			return nil, fmt.Errorf("unknown subcommand: \"%s\". Try \"help\".", subcmd)
 		}
 	}
-	return nil
+	return nil, nil
 }
