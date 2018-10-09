@@ -237,11 +237,12 @@ func subcmdList(cl clock) {
 	}
 }
 
-func main() {
+func mainExitCode() int {
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 	var err error
 	if config, err = loadConfig(); err != nil || config == nil {
-		log.Fatal(err)
+		log.Println(err)
+		return 1
 	}
 	if config.NoLogDate {
 		log.SetFlags(logger.Flags() - log.Ldate - log.Ltime)
@@ -254,7 +255,7 @@ func main() {
 		err = subcmdRun()
 		if err != nil {
 			log.Println(err)
-			os.Exit(1)
+			return 2
 		}
 	case "list":
 		fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
@@ -262,5 +263,9 @@ func main() {
 	case "scheds":
 		schedules.list()
 	}
-	os.Exit(0)
+	return 0
+}
+
+func main() {
+	os.Exit(mainExitCode())
 }
