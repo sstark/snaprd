@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+const initialWait = time.Second * 30
+
 var config *Config
 var logger *log.Logger
 
@@ -66,10 +68,11 @@ func subcmdRun() (ferr error) {
 	if !config.NoWait {
 		sigc := make(chan os.Signal, 1)
 		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
+		log.Printf("waiting %s before making snapshots\n", initialWait)
 		select {
 		case <-sigc:
 			return errors.New("-> Early exit")
-		case <-time.After(time.Second * 30):
+		case <-time.After(initialWait):
 		}
 	}
 	createExit := make(chan bool)
