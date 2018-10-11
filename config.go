@@ -127,7 +127,7 @@ func loadConfig() (*Config, error) {
 	switch subcmd {
 	case "run":
 		{
-			flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
+			flags := flag.NewFlagSet(subcmd, flag.ContinueOnError)
 			flags.StringVar(&(config.RsyncPath),
 				"rsyncPath", "/usr/bin/rsync",
 				"path to rsync binary")
@@ -168,7 +168,9 @@ func loadConfig() (*Config, error) {
 				"minGbSpace", 0,
 				"if set, keep at least x GiB of the snapshots filesystem free")
 
-			flags.Parse(os.Args[2:])
+			if err := flags.Parse(os.Args[2:]); err != nil {
+				return nil, err
+			}
 			if config.SchedFile != "" {
 				schedules.addFromFile(config.SchedFile)
 			}
@@ -189,7 +191,7 @@ func loadConfig() (*Config, error) {
 		}
 	case "list":
 		{
-			flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
+			flags := flag.NewFlagSet(subcmd, flag.ContinueOnError)
 			flags.StringVar(&(config.repository),
 				"repository", defaultRepository,
 				"where snapshots are located")
@@ -208,7 +210,10 @@ func loadConfig() (*Config, error) {
 			flags.StringVar(&(config.SchedFile),
 				"schedFile", defaultSchedFileName,
 				"path to external schedules")
-			flags.Parse(os.Args[2:])
+
+			if err := flags.Parse(os.Args[2:]); err != nil {
+				return nil, err
+			}
 			if config.SchedFile != "" {
 				schedules.addFromFile(config.SchedFile)
 			}
@@ -226,11 +231,14 @@ func loadConfig() (*Config, error) {
 		}
 	case "scheds":
 		{
-			flags := flag.NewFlagSet(subcmd, flag.ExitOnError)
+			flags := flag.NewFlagSet(subcmd, flag.ContinueOnError)
 			flags.StringVar(&(config.SchedFile),
 				"schedFile", defaultSchedFileName,
 				"path to external schedules")
-			flags.Parse(os.Args[2:])
+
+			if err := flags.Parse(os.Args[2:]); err != nil {
+				return nil, err
+			}
 			if config.SchedFile != "" {
 				schedules.addFromFile(config.SchedFile)
 			}

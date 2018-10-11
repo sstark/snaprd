@@ -7,6 +7,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -241,6 +242,9 @@ func mainExitCode() int {
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 	var err error
 	if config, err = loadConfig(); err != nil || config == nil {
+		if err == flag.ErrHelp {
+			return 0
+		}
 		log.Println(err)
 		return 1
 	}
