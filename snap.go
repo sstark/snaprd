@@ -139,9 +139,11 @@ func (s *snapshot) transIncomplete(cl clock) {
 	s.state = stateIncomplete
 	newName := s.FullName()
 	debugf("renaming incomplete snapshot %s -> %s", oldName, newName)
-	err := os.Rename(oldName, newName)
-	if err != nil {
-		log.Fatal(err)
+	if oldName != newName {
+		err := os.Rename(oldName, newName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
