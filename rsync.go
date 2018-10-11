@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 )
 
 // createRsyncCommand returns an exec.Command structure that, when executed,
@@ -47,6 +48,7 @@ func runRsyncCommand(cmd *exec.Cmd) (chan error, error) {
 	}
 	done := make(chan error)
 	go func() {
+		time.Sleep(time.Second)
 		done <- cmd.Wait()
 		return
 	}()
