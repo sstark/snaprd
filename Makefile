@@ -2,7 +2,7 @@ BIN=	snaprd
 PREFIX=	/usr/local
 
 ${BIN}: *.go Makefile
-	go build -o snaprd
+	go build -o ${BIN}
 
 checkfmt:
 	@gofmt -d *.go
