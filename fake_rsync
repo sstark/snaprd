@@ -44,6 +44,6 @@ for ((n=0; n<3; n++)); do
     sleep ${sleep:-0}
 done
 
-mkdir $2
+mkdir -p $3
 
 exit $retval
