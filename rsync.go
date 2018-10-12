@@ -16,6 +16,26 @@ import (
 	"time"
 )
 
+// rsyncIgnoreErrors are rsync return values that are considered temporary
+// errors. If rsync returns one of these error codes, snaprd will not fail and
+// try again next time.
+var rsyncIgnoredErrors = map[int]string{
+	6:  "Daemon unable to append to log-file",
+	10: "Error in socket I/O",
+	11: "Error in file I/O",
+	12: "Error in rsync protocol data stream",
+	13: "Errors with program diagnostics",
+	14: "Error in IPC code",
+	20: "Received SIGUSR1 or SIGINT",
+	21: "Some error returned by waitpid()",
+	22: "Error allocating core memory buffers",
+	23: "Partial transfer due to error",
+	24: "Partial transfer due to vanished source files",
+	25: "The --max-delete limit stopped deletions",
+	30: "Timeout in data send/receive",
+	35: "Timeout waiting for daemon connection",
+}
+
 // createRsyncCommand returns an exec.Command structure that, when executed,
 // creates a snapshot using rsync. Takes an optional (non-nil) base to be used
 // with rsyncs --link-dest feature.
@@ -92,24 +112,14 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 			debugf("received something on done channel: %v", err)
 			if err != nil {
 				// At this stage rsync ran, but with errors.
-				// Restart in case of
-				// - temporary network error
-				// - disk full?
-				// Detect external signalling?
-
 				failed := true
-
 				// First, get the error code
 				if exiterr, ok := err.(*exec.ExitError); ok { // The return code != 0)
 					if status, ok := exiterr.Sys().(syscall.WaitStatus); ok { // Finally get the actual status code
-						debugf("The error code we got is: %v", status.ExitStatus())
-						// status now holds the actual return code
-
-						// Magic number: means some files couldn't be
-						// copied because they vanished, so nothing
-						// critical. See man rsync
-						if status.ExitStatus() == 24 {
-							debugf("Some files failed to copy because they were deleted in the meantime, but nothing critical... going on...")
+						rsyncRet := status.ExitStatus()
+						debugf("The error code we got is: %v", rsyncRet)
+						if errmsg, ok := rsyncIgnoredErrors[rsyncRet]; ok == true {
+							log.Printf("ignoring rsync error %d: %s", rsyncRet, errmsg)
 							failed = false
 						}
 					}
