@@ -6,6 +6,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -72,7 +73,8 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 	cmd := createRsyncCommand(newSn, base)
 	done, err := runRsyncCommand(cmd)
 	if err != nil {
-		log.Fatalln("could not start rsync command:", err)
+		log.Println("could not start rsync command:", err)
+		return nil, err
 	}
 	debugf("rsync started")
 	sigc := make(chan os.Signal, 1)
@@ -113,7 +115,7 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 					}
 				}
 				if failed {
-					return nil, err
+					return nil, fmt.Errorf("rsync failed: %s", err)
 				}
 			}
 			newSn.transComplete(cl)

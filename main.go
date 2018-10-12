@@ -97,6 +97,7 @@ func subcmdRun() (ferr error) {
 		var createError error
 	CREATE_LOOP:
 		for {
+			debugf("start of create loop")
 			select {
 			case <-createExit:
 				debugf("gracefully exiting snapshot creation goroutine")
@@ -106,8 +107,18 @@ func subcmdRun() (ferr error) {
 				sn, err := createSnapshot(lastGood)
 				if err != nil || sn == nil {
 					debugf("snapshot creation finally failed (%s), the partial transfer will hopefully be reused", err)
-					//createError = err
-					//go func() { createExit <- true; return }()
+					createError = err
+					go func() {
+						// need to stop the lastGoodTicker here because it could
+						// happen that it will be faster and the create loop would
+						// run again instead of exiting
+						lastGoodOut = nil
+						debugf("subcmdRun: sending createExit")
+						createExit <- true
+						debugf("subcmdRun: createExit sent")
+						return
+					}()
+					time.Sleep(time.Second)
 				}
 				lastGoodIn <- sn
 				debugf("pruning")
@@ -187,7 +198,9 @@ func subcmdRun() (ferr error) {
 			createExit <- true
 			ferr = <-createExitDone
 		}
+	// ferr will hold the error that happened in the CREATE_LOOP
 	case ferr = <-createExitDone:
+		log.Println("-> Rsync exit")
 	}
 	return
 }
