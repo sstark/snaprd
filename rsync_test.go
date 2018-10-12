@@ -37,6 +37,7 @@ func TestFakeRsyncOk(t *testing.T) {
 	}
 	var config = config
 	config.repository = "/tmp/snaprd_dest"
+	mockRepository()
 	config.ReadCache()
 	dir, _ := os.Getwd()
 	config.RsyncPath = filepath.Join(dir, "fake_rsync")
