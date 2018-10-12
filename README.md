@@ -29,6 +29,12 @@ The project homepage is https://github.com/sstark/snaprd
 Building
 --------
 
+Instead of building the program yourself you can download the latest
+linux binary from https://github.com/sstark/snaprd/releases. This is usually
+built using the latest Ubuntu LTS release.
+
+Build yourself:
+
 Install go either from https://golang.org/ or from your distribution
 repository, e. g. "apt-get install golang".
 
