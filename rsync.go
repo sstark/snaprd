@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-// rsyncIgnoreErrors are rsync return values that are considered temporary
+// rsyncIgnoredErrors are rsync return values that are considered temporary
 // errors. If rsync returns one of these error codes, snaprd will not fail and
 // try again next time.
 var rsyncIgnoredErrors = map[int]string{
