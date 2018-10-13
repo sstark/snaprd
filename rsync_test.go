@@ -63,6 +63,6 @@ func TestFakeRsyncFail(t *testing.T) {
 	_, err := createSnapshot(testSnapshots[0])
 	got := err
 	if got == nil {
-		t.Errorf("createSnapshot() succeded, but it should have failed: %v", got)
+		t.Errorf("createSnapshot() succeeded, but it should have failed: %v", got)
 	}
 }
