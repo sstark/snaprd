@@ -53,6 +53,7 @@ type Config struct {
 	SchedFile    string
 	MinPercSpace float64
 	MinGiBSpace  int
+	Notify       string
 }
 
 // WriteCache writes the global configuration to disk as a json file.
@@ -167,6 +168,9 @@ func loadConfig() (*Config, error) {
 			flags.IntVar(&(config.MinGiBSpace),
 				"minGbSpace", 0,
 				"if set, keep at least x GiB of the snapshots filesystem free")
+			flags.StringVar(&(config.Notify),
+				"notify", "",
+				"specify an email address to send reports")
 
 			if err := flags.Parse(os.Args[2:]); err != nil {
 				return nil, err

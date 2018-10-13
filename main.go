@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -251,10 +252,9 @@ func subcmdList(cl clock) {
 	}
 }
 
-func mainExitCode() int {
-	rio := newRingIO(os.Stderr, 5, 100)
-	logger = log.New(rio, "", log.Ldate|log.Ltime|log.Lshortfile)
-	log.SetOutput(rio)
+func mainExitCode(logIO io.Writer) int {
+	logger = log.New(logIO, "", log.Ldate|log.Ltime|log.Lshortfile)
+	log.SetOutput(logIO)
 	var err error
 	if config, err = loadConfig(); err != nil || config == nil {
 		if err == flag.ErrHelp {
@@ -286,5 +286,12 @@ func mainExitCode() int {
 }
 
 func main() {
-	os.Exit(mainExitCode())
+	rio := newRingIO(os.Stderr, 25, 100)
+	exitCode := mainExitCode(rio)
+	if exitCode != 0 && config.Notify != "" {
+		mail := fmt.Sprintf("snaprd exited with return value %d.\nLatest log output:\n\n%s",
+			exitCode, rio.GetAsText())
+		NotifyMail(config.Notify, mail)
+	}
+	os.Exit(exitCode)
 }

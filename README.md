@@ -94,6 +94,22 @@ Basic operation:
 2016-09-14 Wednesday 20:32:29 (1s, 10m0s)
 ```
 
+E-Mail Notification
+-------------------
+
+If you add the `-notify` option to the run sub-command you will get an email
+in case of a problem. Use it like this:
+
+```
+> snaprd run -notify root <other options...>
+```
+
+If snaprd has a severe problem it will stop execution and send an email to the
+specified address, along with the last few lines of log output.
+
+Sending happens through use of the standard mail(1) command, make sure your
+system is configured accordingly.
+
 
 Stopping
 --------
