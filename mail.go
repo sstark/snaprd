@@ -1,10 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os/exec"
 )
+
+func FailureMail(exitCode int, logBuffer *RingIO) {
+	mail := fmt.Sprintf("snaprd exited with return value %d.\nLatest log output:\n\n%s",
+		exitCode, logBuffer.GetAsText())
+	subject := fmt.Sprintf("snaprd failure (origin: %s)", config.Origin)
+	SendMail(config.Notify, subject, mail)
+}
 
 func NotifyMail(to, msg string) {
 	SendMail(to, "snaprd notice", msg)

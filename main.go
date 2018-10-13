@@ -289,9 +289,7 @@ func main() {
 	rio := newRingIO(os.Stderr, 25, 100)
 	exitCode := mainExitCode(rio)
 	if exitCode != 0 && config.Notify != "" {
-		mail := fmt.Sprintf("snaprd exited with return value %d.\nLatest log output:\n\n%s",
-			exitCode, rio.GetAsText())
-		NotifyMail(config.Notify, mail)
+		FailureMail(exitCode, rio)
 	}
 	os.Exit(exitCode)
 }
