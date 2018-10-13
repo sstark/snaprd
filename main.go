@@ -252,7 +252,9 @@ func subcmdList(cl clock) {
 }
 
 func mainExitCode() int {
-	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
+	rio := newRingIO(os.Stderr, 5, 100)
+	logger = log.New(rio, "", log.Ldate|log.Ltime|log.Lshortfile)
+	log.SetOutput(rio)
 	var err error
 	if config, err = loadConfig(); err != nil || config == nil {
 		if err == flag.ErrHelp {
