@@ -160,10 +160,13 @@ func (s *snapshot) transIncomplete(cl clock) error {
 
 // purge deletes the receiver snapshot from disk.
 func (s *snapshot) purge() {
-	s.transPurging()
+	err := s.transPurging()
+	if err != nil {
+		log.Printf("error peparing %s for purging: %s", s.Name(), err)
+	}
 	path := s.FullName()
 	log.Println("purging", s.Name())
-	err := os.RemoveAll(path)
+	err = os.RemoveAll(path)
 	if err != nil {
 		log.Printf("error when purging \"%s\" (ignored): %s", s.Name(), err)
 	}
