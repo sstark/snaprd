@@ -97,10 +97,13 @@ func (s *snapshot) transComplete(cl clock) {
 	}
 	s.endTime = etime
 	s.state = stateComplete
-	debugf("renaming complete snapshot %s -> %s", oldName, s.FullName())
-	err := os.Rename(oldName, s.FullName())
-	if err != nil {
-		log.Fatal(err)
+	newName := s.FullName()
+	debugf("renaming complete snapshot %s -> %s", oldName, newName)
+	if oldName != newName {
+		err := os.Rename(oldName, newName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	updateSymlinks()
 	overwriteSymlink(filepath.Join(dataSubdir, s.Name()), filepath.Join(config.repository, "latest"))
@@ -111,11 +114,13 @@ func (s *snapshot) transObsolete() {
 	oldName := s.FullName()
 	s.state = stateObsolete
 	newName := s.FullName()
-	err := os.Rename(oldName, newName)
-	updateSymlinks()
-	if err != nil {
-		log.Fatal(err)
+	if oldName != newName {
+		err := os.Rename(oldName, newName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	updateSymlinks()
 }
 
 // transPurging transitions the receiver to purging state.
@@ -123,9 +128,11 @@ func (s *snapshot) transPurging() {
 	oldName := s.FullName()
 	s.state = statePurging
 	newName := s.FullName()
-	err := os.Rename(oldName, newName)
-	if err != nil {
-		log.Fatal(err)
+	if oldName != newName {
+		err := os.Rename(oldName, newName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
