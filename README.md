@@ -96,6 +96,40 @@ Basic operation:
 2016-09-14 Wednesday 20:32:29 (1s, 10m0s)
 ```
 
+See a full list of options available to the run command:
+
+    $ snaprd run -h
+    Usage of run:
+    -maxKeep int
+            how many snapshots to keep in highest (oldest) interval. Use 0 to keep all
+    -minGbSpace int
+            if set, keep at least x GiB of the snapshots filesystem free
+    -minPercSpace float
+            if set, keep at least x% of the snapshots filesystem free
+    -noLogDate
+            if set, does not print date and time in the log output. Useful if output is redirected to syslog
+    -noPurge
+            if set, obsolete snapshots will not be deleted (minimum space requirements will still be honoured)
+    -noWait
+            if set, skip the initial waiting time before the first snapshot
+    -notify string
+            specify an email address to send reports
+    -origin string
+            data source (default "/tmp/snaprd_test/")
+    -r string
+            (shorthand for -repository) (default "/tmp/snaprd_dest")
+    -repository string
+            where to store snapshots (default "/tmp/snaprd_dest")
+    -rsyncOpts value
+            additional options for rsync
+    -rsyncPath string
+            path to rsync binary (default "/usr/bin/rsync")
+    -schedFile string
+            path to external schedules (default "/etc/snaprd.schedules")
+    -schedule string
+            one of longterm,shortterm (default "longterm")
+
+
 E-Mail Notification
 -------------------
 
