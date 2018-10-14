@@ -288,7 +288,9 @@ func mainExitCode(logIO io.Writer) int {
 func main() {
 	rio := newRingIO(os.Stderr, 25, 100)
 	exitCode := mainExitCode(rio)
-	if exitCode != 0 && config.Notify != "" {
+	// do not send a notification when error code is 0 or 1 (error in flag handling)
+	// because in the case 1 we can not access the config yet.
+	if exitCode > 1 && config.Notify != "" {
 		FailureMail(exitCode, rio)
 	}
 	os.Exit(exitCode)
