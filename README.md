@@ -1,3 +1,5 @@
+![](snaprd_logo_sq.png?raw=true)
+
 snaprd - backup utility
 =======================
 
