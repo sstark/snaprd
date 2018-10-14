@@ -21,7 +21,7 @@ func TestCreateRsyncCommand(t *testing.T) {
 	config.ReadCache()
 	cmd := createRsyncCommand(testSnapshots[1], testSnapshots[0])
 	got := cmd.Args
-	wanted := []string{"/usr/bin/rsync", "--delete", "-a",
+	wanted := []string{"/usr/bin/rsync", "--delete", "-a", "--stats",
 		"--link-dest=testdata/.data/1400337531-1400338693-complete",
 		"/tmp/snaprd_test/",
 		"testdata/.data/1400534523-0-incomplete"}

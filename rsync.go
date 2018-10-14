@@ -47,6 +47,7 @@ func createRsyncCommand(sn *snapshot, base *snapshot) *exec.Cmd {
 	args = append(args, config.RsyncPath)
 	args = append(args, "--delete")
 	args = append(args, "-a")
+	args = append(args, "--stats")
 	args = append(args, config.RsyncOpts...)
 	if base != nil {
 		args = append(args, "--link-dest="+base.FullName())
