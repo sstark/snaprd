@@ -85,11 +85,11 @@ func (s *snapshot) FullName() string {
 }
 
 // transComplete transitions the receiver to complete state.
-func (s *snapshot) transComplete(cl clock) {
+func (s *snapshot) transComplete(cl clock) error {
 	oldName := s.FullName()
 	etime := cl.Now()
 	if etime.Before(s.startTime) {
-		log.Fatal("endTime before startTime!")
+		return errors.New("endTime before startTime!")
 	}
 	// make all snapshots at least 1 second long
 	if etime.Sub(s.startTime).Seconds() < 1 {
@@ -102,44 +102,47 @@ func (s *snapshot) transComplete(cl clock) {
 	if oldName != newName {
 		err := os.Rename(oldName, newName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	updateSymlinks()
 	overwriteSymlink(filepath.Join(dataSubdir, s.Name()), filepath.Join(config.repository, "latest"))
+	return nil
 }
 
 // transObsolete transitions the receiver to obsolete state.
-func (s *snapshot) transObsolete() {
+func (s *snapshot) transObsolete() error {
 	oldName := s.FullName()
 	s.state = stateObsolete
 	newName := s.FullName()
 	if oldName != newName {
 		err := os.Rename(oldName, newName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 	updateSymlinks()
+	return nil
 }
 
 // transPurging transitions the receiver to purging state.
-func (s *snapshot) transPurging() {
+func (s *snapshot) transPurging() error {
 	oldName := s.FullName()
 	s.state = statePurging
 	newName := s.FullName()
 	if oldName != newName {
 		err := os.Rename(oldName, newName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
+	return nil
 }
 
 // transIncomplete generates a new incomplete snapshot based on a previous one.
 // Can be used to try to use previous incomplete snapshots, or even to reuse
 // obsolete ones.
-func (s *snapshot) transIncomplete(cl clock) {
+func (s *snapshot) transIncomplete(cl clock) error {
 	oldName := s.FullName()
 	s.startTime = cl.Now()
 	s.endTime = time.Time{}
@@ -149,9 +152,10 @@ func (s *snapshot) transIncomplete(cl clock) {
 	if oldName != newName {
 		err := os.Rename(oldName, newName)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
+	return nil
 }
 
 // purge deletes the receiver snapshot from disk.

@@ -34,7 +34,10 @@ func prune(q chan *snapshot, cl clock) {
 				(config.MaxKeep != 0) {
 				debugf("%d snapshots in oldest interval", len(iv))
 				log.Printf("mark oldest as obsolete: %s", iv[0])
-				iv[0].transObsolete()
+				err := iv[0].transObsolete()
+				if err != nil {
+					log.Printf("could not transition snapshot: %s", err)
+				}
 				q <- iv[0]
 				pruneAgain = true
 			}
@@ -44,7 +47,10 @@ func prune(q chan *snapshot, cl clock) {
 			dist := iv[youngest].startTime.Sub(iv[secondYoungest].startTime)
 			if dist.Seconds() < intervals[i].Seconds() {
 				log.Printf("mark as obsolete: %s", iv[youngest].Name())
-				iv[youngest].transObsolete()
+				err := iv[youngest].transObsolete()
+				if err != nil {
+					log.Printf("could not transition snapshot: %s", err)
+				}
 				q <- iv[youngest]
 				pruneAgain = true
 			}

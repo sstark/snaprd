@@ -144,7 +144,10 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 					return nil, fmt.Errorf("rsync failed: %s", err)
 				}
 			}
-			newSn.transComplete(cl)
+			err = newSn.transComplete(cl)
+			if err != nil {
+				return nil, err
+			}
 			log.Println("finished:", newSn.Name())
 			return newSn, nil
 		}
