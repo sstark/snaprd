@@ -233,10 +233,14 @@ func subcmdList(cl clock) {
 			ct.ResetColor()
 		} else {
 			ct.Foreground(ct.Yellow, false)
-			if config.MaxKeep == 0 {
-				fmt.Printf("### From past, %d/∞\n", len(snapshots))
-			} else {
+			if config.MaxKeep != 0 {
 				fmt.Printf("### From past, %d/%d\n", len(snapshots), config.MaxKeep)
+			} else if config.MinPercSpace != 0 {
+				fmt.Printf("### From past, %d/(keep %.1f%% free)\n", len(snapshots), config.MinPercSpace)
+			} else if config.MinGiBSpace != 0 {
+				fmt.Printf("### From past, %d/(keep %dGiB free)\n", len(snapshots), config.MinGiBSpace)
+			} else {
+				fmt.Printf("### From past, %d/∞\n", len(snapshots))
 			}
 			ct.ResetColor()
 		}
