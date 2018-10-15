@@ -2,6 +2,7 @@ BIN=	snaprd
 PREFIX=	/usr/local
 
 ${BIN}: *.go Makefile
+	go get github.com/daviddengcn/go-colortext
 	go build -o ${BIN}
 
 checkfmt:
