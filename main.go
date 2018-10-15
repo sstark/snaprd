@@ -9,7 +9,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/daviddengcn/go-colortext"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -226,13 +228,17 @@ func subcmdList(cl clock) {
 		snapshots := snapshots.interval(intervals, n, cl)
 		debugf("snapshots in interval %d: %s", n, snapshots)
 		if n < len(intervals)-2 {
+			ct.Foreground(ct.Yellow, false)
 			fmt.Printf("### From %s ago, %d/%d\n", intervals.offset(n+1), len(snapshots), intervals.goal(n))
+			ct.ResetColor()
 		} else {
+			ct.Foreground(ct.Yellow, false)
 			if config.MaxKeep == 0 {
 				fmt.Printf("### From past, %d/∞\n", len(snapshots))
 			} else {
 				fmt.Printf("### From past, %d/%d\n", len(snapshots), config.MaxKeep)
 			}
+			ct.ResetColor()
 		}
 		for i, sn := range snapshots {
 			stime := sn.startTime.Format("2006-01-02 Monday 15:04:05")
@@ -277,7 +283,12 @@ func mainExitCode(logIO io.Writer) int {
 			return 2
 		}
 	case "list":
+		if config.noColor {
+			ct.Writer = ioutil.Discard
+		}
+		ct.Foreground(ct.Green, false)
 		fmt.Printf("### Repository: %s, Origin: %s, Schedule: %s\n", config.repository, config.Origin, config.Schedule)
+		ct.ResetColor()
 		subcmdList(nil)
 	case "scheds":
 		schedules.list()

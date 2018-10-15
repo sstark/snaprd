@@ -54,6 +54,7 @@ type Config struct {
 	MinPercSpace float64
 	MinGiBSpace  int
 	Notify       string
+	noColor      bool
 }
 
 // WriteCache writes the global configuration to disk as a json file.
@@ -214,6 +215,9 @@ func loadConfig() (*Config, error) {
 			flags.StringVar(&(config.SchedFile),
 				"schedFile", defaultSchedFileName,
 				"path to external schedules")
+			flags.BoolVar(&(config.noColor),
+				"noColor", false,
+				"do not colorize list output")
 
 			if err := flags.Parse(os.Args[2:]); err != nil {
 				return nil, err
