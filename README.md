@@ -52,12 +52,15 @@ Run `go get github.com/sstark/snaprd`. The binary will be in
 Installing
 ----------
 
-Snaprd does not daemonize, logs are printed to the standard output. Choose
-whatever you like for starting it at boot: rc.local, SysVinit, upstart,
-systemd, supervisord, BSD-init, launchd, daemontools, ...
+Snaprd does not daemonize, logs are printed to the standard output, also the
+stdout and stderr of the rsync command that is being run. Choose whatever you
+like for starting it at boot: rc.local, SysVinit, upstart, systemd,
+supervisord, BSD-init, launchd, daemontools, ...
 
 In case your repository resides in a separate file system you may want to put
 some mechanism before startup that makes sure this file system is mounted.
+
+See below for an example how to run snaprd using systemd.
 
 
 Running
