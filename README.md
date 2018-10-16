@@ -238,7 +238,12 @@ with the -schedule switch to the run command:
 The duration listed define how long a snapshot stays in that interval until it
 is either promoted to the next higher interval or deleted.
 
-You can define your own schedules by editing a json-formatted file `/etc/snaprd.schedules` with entries like:
+Which schedule you choose is entirely up to you, just make sure the smallest
+(first) interval is large enough so the expected runtime of a single rsync
+snapshot fits in it with a good margin.
+
+You can define your own schedules by editing a json-formatted file
+`/etc/snaprd.schedules` with entries like:
 
 ```
 {
@@ -273,7 +278,7 @@ Place in `/etc/systemd/system/snaprd-srv-home.service`
     [Service]
     User=root
     StandardOutput=syslog
-    ExecStart=/usr/local/bin/snaprd run -noLogDate -repository=/export/srv-home-snap -origin=srv:/export/homes
+    ExecStart=/usr/local/bin/snaprd run -noLogDate -notify root -repository=/export/srv-home-snap -origin=srv:/export/homes
     Restart=on-failure
 
     [Install]
