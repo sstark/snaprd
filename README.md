@@ -79,24 +79,35 @@ Basic operation:
 [...]
 ```
 
-```
-> snaprd list -repository /tmp/snaprd_dest
-### Repository: /tmp/snaprd_dest, Origin: /tmp/snaprd_test2, Schedule: shortterm
-### From past, 0/∞
-### From 866h0m0s ago, 0/4
-### From 194h0m0s ago, 0/7
-### From 26h0m0s ago, 2/12
-2016-09-14 Wednesday 12:14:31 (1s, 2h0m0s)
-2016-09-14 Wednesday 12:19:46 (2s, 2h0m0s)
-### From 2h0m0s ago, 5/12
-2016-09-14 Wednesday 19:51:07 (1s, 10m0s)
-2016-09-14 Wednesday 19:51:21 (1s, 10m0s)
-2016-09-14 Wednesday 19:51:26 (1s, 10m0s)
-2016-09-14 Wednesday 19:51:31 (1s, 10m0s)
-2016-09-14 Wednesday 20:32:29 (1s, 10m0s)
-```
+The above command will create a hard-linked copy (see the `--link-dest` option
+in *rsync(1)*) via ssh from the directory "some/dir" on "someserver" every 10
+minutes. The copy will be written into a directory within the `.data`
+sub-directory of the target directory "/target/dir" on the local system. The
+directory name for the snapshots consists of the start time and end time of the
+rsync run (in unix time) and the state of the snapshot. While rsync is running
+the name will be "<start>-0-incomplete". Only after rsync is done, the
+directory will be renamed to "<start>-<end>-complete".
 
-See a full list of options available to the run command:
+After each snapshot snaprd will also create user-friendly names as symlinks
+into the .data dir, so if you export the snapshot directory read-only, users
+should find a resonably convenient way to find their backups.
+
+Next, snaprd will *prune* the existing snapshots. That means it will check if a
+snapshot is suitable for being advanced into the next level of the schedule (in
+this example that means the "two-hourly" interval) or if it should stay in the
+current interval. If the current interval is "full" already, but no snapshot is
+suitable for being advanced, snaprd will *obsolete* as many snapshots as needed
+to match the schedule.
+
+Marking a snapshot "obsolete" simply means renaming it to
+"<start>-<end>-obsolete". From then on it will not show up anymore in normal
+listings and also not be considered as a target for --link-dest. The default
+for snaprd is to eventually mark those obsolete snapshots as
+"<start>-<end>-purging" and delete them from disk. You can tweak this behaviour
+with the "-maxKeep", "-noPurge", "-minGbSpace" and "-minPercSpace" parameters
+for snaprd.
+
+To get a full list of options available to the run command, use `snaprd run -h`:
 
     $ snaprd run -h
     Usage of run:
@@ -128,6 +139,32 @@ See a full list of options available to the run command:
             path to external schedules (default "/etc/snaprd.schedules")
     -schedule string
             one of longterm,shortterm (default "longterm")
+
+
+```
+> snaprd list -repository /tmp/snaprd_dest
+### Repository: /tmp/snaprd_dest, Origin: /tmp/snaprd_test2, Schedule: shortterm
+### From past, 0/∞
+### From 866h0m0s ago, 0/4
+### From 194h0m0s ago, 0/7
+### From 26h0m0s ago, 2/12
+2016-09-14 Wednesday 12:14:31 (1s, 2h0m0s)
+2016-09-14 Wednesday 12:19:46 (2s, 2h0m0s)
+### From 2h0m0s ago, 5/12
+2016-09-14 Wednesday 19:51:07 (1s, 10m0s)
+2016-09-14 Wednesday 19:51:21 (1s, 10m0s)
+2016-09-14 Wednesday 19:51:26 (1s, 10m0s)
+2016-09-14 Wednesday 19:51:31 (1s, 10m0s)
+2016-09-14 Wednesday 20:32:29 (1s, 10m0s)
+```
+
+The above list command will output some information about the intervals for the
+given schedule and how many snapshots are in them.
+
+Obviously the list command needs to know which schedule was used for creating
+the snapshots, but in the above example you can see that no schedule was given
+at the command line. This works because snaprd writes all settings that were
+used for the last *run* command to the repository as `.snaprd.settings`.
 
 
 E-Mail Notification
