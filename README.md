@@ -147,6 +147,31 @@ Sending happens through use of the standard mail(1) command, make sure your
 system is configured accordingly.
 
 
+System Prerequisites
+--------------------
+
+Obviously you need a file system where you can store enough data to fit the
+dataset you are backing up. It is not possible to predict how much space will
+be needed for a given schedule and update pattern of data. You should at least
+make the snapshot file system such that it can be easily extended if needed.
+Starting with a factor of 1.5 to 2 should be sufficient.
+
+If you are using mlocate or a similar mechanism to index your files, make sure
+you exclude your snapshot file system from it, e. g. like this:
+
+<pre>
+$ cat /etc/updatedb.conf
+PRUNE_BIND_MOUNTS="yes"
+# PRUNENAMES=".git .bzr .hg .svn"
+PRUNEPATHS="/tmp /var/spool /media /var/lib/os-prober /var/lib/ceph /home/.ecryptfs /var/lib/schroot <b>/snapshots</b>"
+PRUNEFS="NFS nfs nfs4 rpc_pipefs afs binfmt_misc proc smbfs autofs iso9660 ncpfs coda devpts ftpfs devfs devtmpfs fuse.mfs shfs sysfs cifs lustre tmpfs usbfs udf fuse.glusterfs fuse.sshfs curlftpfs ceph fuse.ceph fuse.rozofs ecryptfs fusesmb"
+</pre>
+
+If you do not exclude your snapshots you will get enormously big mlocate.db
+files with lots of redundant information.
+
+
+
 Stopping
 --------
 
