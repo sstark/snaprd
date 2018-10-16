@@ -21,3 +21,6 @@
 - support more than one directory to backup (avoid having to run many instances on a system)
 - mail hook in case of failed/missed backup
 - Test failure and non-failure rsync errors (e. g. 24)
+- "snaprd log" subcmd to print log ring buffer
+- extend sched subcmd to be more useful
+- parse rsync output and fill some extra info struct that can be stored in the repository
