@@ -85,8 +85,8 @@ minutes. The copy will be written into a directory within the `.data`
 sub-directory of the target directory "/target/dir" on the local system. The
 directory name for the snapshots consists of the start time and end time of the
 rsync run (in unix time) and the state of the snapshot. While rsync is running
-the name will be "<start>-0-incomplete". Only after rsync is done, the
-directory will be renamed to "<start>-<end>-complete".
+the name will be `<start>-0-incomplete`. Only after rsync is done, the
+directory will be renamed to `<start>-<end>-complete`.
 
 After each snapshot snaprd will also create user-friendly names as symlinks
 into the .data dir, so if you export the snapshot directory read-only, users
@@ -100,10 +100,10 @@ suitable for being advanced, snaprd will *obsolete* as many snapshots as needed
 to match the schedule.
 
 Marking a snapshot "obsolete" simply means renaming it to
-"<start>-<end>-obsolete". From then on it will not show up anymore in normal
+`<start>-<end>-obsolete`. From then on it will not show up anymore in normal
 listings and also not be considered as a target for --link-dest. The default
 for snaprd is to eventually mark those obsolete snapshots as
-"<start>-<end>-purging" and delete them from disk. You can tweak this behaviour
+`<start>-<end>-purging` and delete them from disk. You can tweak this behaviour
 with the "-maxKeep", "-noPurge", "-minGbSpace" and "-minPercSpace" parameters
 for snaprd.
 
