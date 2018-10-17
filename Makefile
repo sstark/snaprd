@@ -9,7 +9,7 @@ checkfmt:
 	@gofmt -d *.go
 
 test:
-	env TZ=Europe/Berlin go test
+	env TZ=Europe/Berlin go test -cover -race
 
 install: ${BIN}
 	install ${BIN} ${PREFIX}/bin
