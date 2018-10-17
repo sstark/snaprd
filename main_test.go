@@ -23,3 +23,13 @@ func ExampleSubcmdList() {
 	// 2014-05-17 Saturday 16:41:56 (1s, 5s)
 	// 2014-05-17 Saturday 16:42:01 (1s, 5s)
 }
+
+func ExampleScheds() {
+	schedules.list()
+	// Output:
+	// longterm: [6h0m0s 24h0m0s 168h0m0s 672h0m0s 876000h0m0s]
+	// shortterm: [10m0s 2h0m0s 24h0m0s 168h0m0s 672h0m0s 876000h0m0s]
+	// test1: [24h0m0s 168h0m0s 672h0m0s 876000h0m0s]
+	// testing: [5s 20s 2m20s 4m40s 876000h0m0s]
+	// testing2: [5s 20s 40s 1m20s 876000h0m0s]
+}
