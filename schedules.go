@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -91,8 +92,13 @@ func (schl scheduleList) addFromFile(file string) {
 
 // list prints the stored schedules in the list
 func (schl scheduleList) list() {
-	for name, sched := range schl {
-		fmt.Printf("%s: %s\n", name, sched)
+	var sKeys []string
+	for k := range schl {
+		sKeys = append(sKeys, k)
+	}
+	sort.Strings(sKeys)
+	for _, name := range sKeys {
+		fmt.Printf("%s: %s\n", name, schl[name])
 	}
 }
 
