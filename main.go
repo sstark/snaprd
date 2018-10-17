@@ -67,7 +67,11 @@ func lastGoodTicker(in, out chan *snapshot, cl clock) {
 // helper goroutines.
 func subcmdRun() (ferr error) {
 	pl := newPidLocker(filepath.Join(config.repository, ".pid"))
-	pl.Lock()
+	err := pl.Lock()
+	if err != nil {
+		ferr = err
+		return
+	}
 	defer pl.Unlock()
 	if !config.NoWait {
 		sigc := make(chan os.Signal, 1)
