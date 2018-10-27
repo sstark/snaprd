@@ -137,6 +137,10 @@ func createSnapshot(base *snapshot) (*snapshot, error) {
 						debugf("The error code we got is: %v", rsyncRet)
 						if errmsg, ok := rsyncIgnoredErrors[rsyncRet]; ok == true {
 							log.Printf("ignoring rsync error %d: %s", rsyncRet, errmsg)
+							// 24 ("files vanished") happens too often and is usually harmless
+							if rsyncRet != 24 && config.Notify != "" {
+								RsyncIssueMail(err, rsyncRet)
+							}
 							failed = false
 						}
 					}
