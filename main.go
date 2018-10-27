@@ -54,9 +54,15 @@ func lastGoodTicker(in, out chan *snapshot, cl clock) {
 			debugf("gap: %s", gap)
 			wait = schedules[config.Schedule][0] - gap
 			if wait > 0 {
+				sigc := make(chan os.Signal, 1)
+				signal.Notify(sigc, syscall.SIGUSR2)
 				log.Println("wait", wait, "before next snapshot")
-				time.Sleep(wait)
-				debugf("Awoken at %s\n", cl.Now())
+				select {
+				case <-sigc:
+					log.Println("Snapshot forced by signal, skipping wait time.")
+				case <-time.After(wait):
+					debugf("Awoken at %s\n", cl.Now())
+				}
 			}
 		}
 		out <- sn
