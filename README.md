@@ -225,6 +225,18 @@ current backup has finished, and exit afterwards.
 You can find the pid of the running process in the repository directory in the
 file `.pid`.
 
+Signals
+-------
+
+snaprd responds to various signals.
+
+  - **INT**, **TERM**: Makes snaprd exit immediately, killing a potentially
+    running rsync process using the same signal.
+  - **USR1**: While rsync is running, wait until it finished, then exit.
+    Otherwise just exit.
+  - **USR2**: If snaprd is idle waiting for the next scheduled snapshot,
+    sending SIGUSR2 will cancel this waiting time and force an immediate
+    snapshot.
 
 Schedules
 ---------
