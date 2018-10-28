@@ -64,30 +64,24 @@ var schedules = scheduleList{
 }
 
 // addFromFile adds an external JSON file to the list of available scheds
-func (schl scheduleList) addFromFile(file string) {
+func (schl scheduleList) addFromFile(file string) error {
 	// If we are using the default file name, and it doesn't exist, no problem, just return
-
 	if _, err := os.Stat(file); os.IsNotExist(err) && file == defaultSchedFileName {
-		return
+		return nil
 	}
-
 	schedFile, err := ioutil.ReadFile(file)
 	if err != nil {
-		fmt.Printf("Error opening schedule file: %v\n", err)
-		return
+		return fmt.Errorf("Error opening schedule file: %v", err)
 	}
-
 	var readData map[string]jsonInterval
-
 	err = json.Unmarshal(schedFile, &readData)
 	if err != nil {
-		fmt.Printf("Error parsing data: %v\n", err)
-		return
+		return fmt.Errorf("Error parsing schedule file: %v", err)
 	}
-
 	for k, v := range readData {
 		schl[k] = v.intervalList()
 	}
+	return nil
 }
 
 // list prints the stored schedules in the list

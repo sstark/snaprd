@@ -177,7 +177,10 @@ func loadConfig() (*Config, error) {
 				return nil, err
 			}
 			if config.SchedFile != "" {
-				schedules.addFromFile(config.SchedFile)
+				err := schedules.addFromFile(config.SchedFile)
+				if err != nil {
+					return nil, err
+				}
 			}
 			if _, ok := schedules[config.Schedule]; ok == false {
 				return nil, fmt.Errorf("no such schedule: %s\n", config.Schedule)
@@ -223,7 +226,10 @@ func loadConfig() (*Config, error) {
 				return nil, err
 			}
 			if config.SchedFile != "" {
-				schedules.addFromFile(config.SchedFile)
+				err := schedules.addFromFile(config.SchedFile)
+				if err != nil {
+					return nil, err
+				}
 			}
 			err := config.ReadCache()
 			if err != nil {
