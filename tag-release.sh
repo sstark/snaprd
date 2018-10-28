@@ -19,4 +19,4 @@ then
     print "fix version.go first"
     exit 1
 fi
-echo git tag -s v$v
+echo git tag -s v$v -m \"tag snaprd v$v\"
