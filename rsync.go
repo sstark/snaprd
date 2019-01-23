@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -63,21 +62,17 @@ func createRsyncCommand(sn *snapshot, base *snapshot) *exec.Cmd {
 // error channel the caller can receive a return status from.
 func runRsyncCommand(cmd *exec.Cmd) (chan error, error) {
 	var err error
-	stdout, err := cmd.StdoutPipe()
+	cmdOutput, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
+	cmd.Stderr = cmd.Stdout
 	debugf("starting rsync command")
 	err = cmd.Start()
 	if err != nil {
 		return nil, err
 	}
-	multi := io.MultiReader(stdout, stderr)
-	in := bufio.NewScanner(multi)
+	in := bufio.NewScanner(cmdOutput)
 	for in.Scan() {
 		log.Printf("(rsync) %s", in.Text())
 	}
