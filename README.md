@@ -292,6 +292,8 @@ Place in `/etc/systemd/system/snaprd-srv-home.service`
     StandardOutput=syslog
     ExecStart=/usr/local/bin/snaprd run -noLogDate -notify root -repository=/export/srv-home-snap -origin=srv:/export/homes
     Restart=on-failure
+    # for a shared machine you probably want to set the scheduling class:
+    IOSchedulingClass=idle
 
     [Install]
     WantedBy=multi-user.target
